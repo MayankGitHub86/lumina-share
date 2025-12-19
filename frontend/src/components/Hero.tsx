@@ -1,12 +1,7 @@
-<<<<<<< HEAD
 import { useState, useEffect } from "react";
 import { ArrowRight, LogIn, UserPlus, Zap, Users, MessageCircle, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-=======
-import { ArrowRight, Zap, Users, MessageCircle, Award } from "lucide-react";
-import { Button } from "@/components/ui/button";
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 
 const stats = [
   { label: "Active Users", value: "50K+", icon: Users },
@@ -14,7 +9,6 @@ const stats = [
   { label: "Expert Contributors", value: "2.5K+", icon: Award },
 ];
 
-<<<<<<< HEAD
 const backgroundImages = [
   "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1920&q=80",
   "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1920&q=80",
@@ -56,13 +50,6 @@ export function Hero() {
 
       {/* Animated Background Mesh */}
       <div className="absolute inset-0 mesh-gradient opacity-50" />
-=======
-export function Hero() {
-  return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16">
-      {/* Animated Background Mesh */}
-      <div className="absolute inset-0 mesh-gradient" />
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
       
       {/* Floating Orbs */}
       <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-float" />
@@ -80,7 +67,6 @@ export function Hero() {
       />
 
       <div className="container mx-auto px-4 relative z-10">
-<<<<<<< HEAD
         <div className="grid lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
           {/* Left Content */}
           <div className="stagger-children text-center lg:text-left">
@@ -147,12 +133,15 @@ export function Hero() {
                         </div>
                       </div>
                     </div>
-                    {/* Website Preview */}
+                    {/* Video Preview */}
                     <div className="absolute inset-0 pt-8">
-                      <iframe 
-                        src={window.location.origin + "/explore"} 
-                        className="w-full h-full border-0 pointer-events-none"
-                        title="Desktop Preview"
+                      <video 
+                        src="/assets/vid1.mp4"
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
                       />
                     </div>
                   </div>
@@ -178,74 +167,21 @@ export function Hero() {
                         <div className="text-xs">5G</div>
                       </div>
                     </div>
-                    {/* Website Preview */}
+                    {/* Video Preview */}
                     <div className="absolute inset-0 pt-10">
-                      <iframe 
-                        src={window.location.origin} 
-                        className="w-full h-full border-0 pointer-events-none scale-50 origin-top-left"
-                        style={{ width: '200%', height: '200%' }}
-                        title="Mobile Preview"
+                      <video 
+                        src="/assets/vid2.mp4"
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
                       />
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-=======
-        <div className="max-w-4xl mx-auto text-center stagger-children">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-8">
-            <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-primary">AI-Powered Knowledge Sharing</span>
-          </div>
-
-          {/* Heading */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6">
-            Share Knowledge,
-            <br />
-            <span className="gradient-text">Solve Problems</span>
-          </h1>
-
-          {/* Subheading */}
-          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-            Join the most innovative community of problem solvers. Ask questions, 
-            share expertise, and unlock solutions with AI-enhanced discussions.
-          </p>
-
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <Button variant="hero" size="xl" className="group">
-              Get Started Free
-              <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-            </Button>
-            <Button variant="outline" size="xl">
-              Explore Problems
-            </Button>
-          </div>
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
-            {stats.map((stat, index) => {
-              const Icon = stat.icon;
-              return (
-                <div
-                  key={stat.label}
-                  className="glass card-hover rounded-2xl p-6 text-center group"
-                  style={{ animationDelay: `${0.6 + index * 0.1}s` }}
-                >
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
-                    <Icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="text-3xl font-bold gradient-text mb-1">
-                    {stat.value}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {stat.label}
-                  </div>
-                </div>
-              );
-            })}
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
           </div>
         </div>
       </div>

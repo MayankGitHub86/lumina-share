@@ -12,7 +12,6 @@ import Trending from "./pages/Trending";
 import Leaderboard from "./pages/Leaderboard";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-<<<<<<< HEAD
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import { AuthProvider, useAuth } from "./context/auth";
@@ -55,33 +54,6 @@ const App = () => (
   <AuthProvider>
     <AppContent />
   </AuthProvider>
-=======
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/saved" element={<Saved />} />
-          <Route path="/tags" element={<Tags />} />
-          <Route path="/tags/:tagName" element={<Tags />} />
-          <Route path="/trending" element={<Trending />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-          <Route path="/settings" element={<Settings />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 );
 
 export default App;

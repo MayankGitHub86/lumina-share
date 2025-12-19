@@ -1,16 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-<<<<<<< HEAD
 import { Search, Menu, X, Sparkles, Home, Compass, Users, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NotificationPanel } from "@/components/NotificationPanel";
 import { AskQuestionDialog } from "@/components/AskQuestionDialog";
-=======
-import { Search, Bell, Menu, X, Sparkles, Home, Compass, Users, Bookmark } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 import { cn } from "@/lib/utils";
 
 const navLinks = [
@@ -23,10 +17,7 @@ const navLinks = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
-<<<<<<< HEAD
   const [isAskDialogOpen, setIsAskDialogOpen] = useState(false);
-=======
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
   const location = useLocation();
 
   return (
@@ -109,7 +100,6 @@ export function Navbar() {
               </div>
 
               {/* Notifications */}
-<<<<<<< HEAD
               <NotificationPanel />
 
               {/* Auth */}
@@ -119,17 +109,6 @@ export function Navbar() {
               <Link to="/signup" className="hidden sm:block">
                 <Button variant="hero" size="sm">Sign Up</Button>
               </Link>
-=======
-              <button className="relative p-2.5 rounded-xl bg-muted/50 hover:bg-muted transition-colors">
-                <Bell className="w-5 h-5 text-muted-foreground" />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full animate-pulse" />
-              </button>
-
-              {/* Ask Question Button */}
-              <Button variant="hero" size="sm" className="hidden sm:flex">
-                Ask Question
-              </Button>
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 
               {/* Mobile Menu Toggle */}
               <button
@@ -173,7 +152,6 @@ export function Navbar() {
               );
             })}
             <div className="pt-2">
-<<<<<<< HEAD
               <div className="grid grid-cols-2 gap-2">
                 <Button variant="outline" onClick={() => { setIsOpen(false); }}>
                   <Link to="/login" className="w-full h-full block">Log In</Link>
@@ -190,24 +168,18 @@ export function Navbar() {
                   setIsOpen(false);
                 }}
               >
-=======
-              <Button variant="hero" className="w-full">
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
                 Ask Question
               </Button>
             </div>
           </div>
         </div>
       </nav>
-<<<<<<< HEAD
 
       {/* Ask Question Dialog */}
       <AskQuestionDialog 
         open={isAskDialogOpen} 
         onOpenChange={setIsAskDialogOpen} 
       />
-=======
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
     </header>
   );
 }

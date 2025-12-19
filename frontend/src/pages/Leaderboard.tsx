@@ -5,11 +5,8 @@ import { Footer } from "@/components/Footer";
 import { Sidebar } from "@/components/Sidebar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-<<<<<<< HEAD
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
-=======
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 
 const timeFilters = [
   { id: "week", label: "This Week" },
@@ -18,7 +15,6 @@ const timeFilters = [
   { id: "all", label: "All Time" },
 ];
 
-<<<<<<< HEAD
 type LeaderItem = {
   rank: number;
   id: string;
@@ -41,101 +37,6 @@ const Leaderboard = () => {
     },
   });
   const leaderboardData: LeaderItem[] = data || [];
-=======
-const leaderboardData = [
-  {
-    rank: 1,
-    name: "Emma Watson",
-    username: "@emmawatson",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emma",
-    points: 125430,
-    answers: 2341,
-    acceptedRate: 94,
-    streak: 127,
-    badges: ["Diamond", "React Master", "Top 1%"],
-  },
-  {
-    rank: 2,
-    name: "John Doe",
-    username: "@johndoe",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
-    points: 102340,
-    answers: 1892,
-    acceptedRate: 91,
-    streak: 89,
-    badges: ["Platinum", "Node Expert"],
-  },
-  {
-    rank: 3,
-    name: "Lisa Park",
-    username: "@lisapark",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa",
-    points: 89760,
-    answers: 1567,
-    acceptedRate: 88,
-    streak: 65,
-    badges: ["Gold", "AI Pioneer"],
-  },
-  {
-    rank: 4,
-    name: "Mike Chen",
-    username: "@mikechen",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mike",
-    points: 76540,
-    answers: 1456,
-    acceptedRate: 85,
-    streak: 43,
-    badges: ["Gold", "Backend Pro"],
-  },
-  {
-    rank: 5,
-    name: "Anna Kim",
-    username: "@annakim",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Anna",
-    points: 65430,
-    answers: 1234,
-    acceptedRate: 82,
-    streak: 31,
-    badges: ["Silver", "CSS Wizard"],
-  },
-  {
-    rank: 6,
-    name: "Carlos Rodriguez",
-    username: "@carlosr",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Carlos",
-    points: 54320,
-    answers: 987,
-    acceptedRate: 79,
-    streak: 28,
-    badges: ["Silver"],
-  },
-  {
-    rank: 7,
-    name: "Sophie Miller",
-    username: "@sophiem",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie",
-    points: 43210,
-    answers: 876,
-    acceptedRate: 76,
-    streak: 21,
-    badges: ["Bronze"],
-  },
-  {
-    rank: 8,
-    name: "David Lee",
-    username: "@davidlee",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=DavidL",
-    points: 32100,
-    answers: 765,
-    acceptedRate: 73,
-    streak: 14,
-    badges: ["Bronze"],
-  },
-];
-
-const Leaderboard = () => {
-  const [activeFilter, setActiveFilter] = useState("month");
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 
   const getRankIcon = (rank: number) => {
     if (rank === 1) return <Crown className="w-6 h-6 text-yellow-500" />;
@@ -233,7 +134,6 @@ const Leaderboard = () => {
                   <div className="col-span-4">User</div>
                   <div className="col-span-2 text-right">Points</div>
                   <div className="col-span-2 text-right">Answers</div>
-<<<<<<< HEAD
                   <div className="col-span-2 text-right">Questions</div>
                   <div className="col-span-1 text-right">Badges</div>
                 </div>
@@ -246,14 +146,6 @@ const Leaderboard = () => {
                 {!isLoading && !isError && leaderboardData.map((user) => (
                   <div
                     key={`${user.rank}-${user.id}`}
-=======
-                  <div className="col-span-2 text-right">Accept Rate</div>
-                  <div className="col-span-1 text-right">Streak</div>
-                </div>
-                {leaderboardData.map((user) => (
-                  <div
-                    key={user.rank}
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
                     className="grid grid-cols-12 gap-4 p-4 border-b border-white/5 hover:bg-muted/30 transition-colors items-center"
                   >
                     <div className="col-span-1 flex items-center justify-center">
@@ -267,18 +159,13 @@ const Leaderboard = () => {
                       />
                       <div>
                         <p className="font-medium text-foreground">{user.name}</p>
-<<<<<<< HEAD
                         <p className="text-xs text-muted-foreground">@{user.username}</p>
-=======
-                        <p className="text-xs text-muted-foreground">{user.username}</p>
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
                       </div>
                     </div>
                     <div className="col-span-2 text-right font-semibold text-foreground">
                       {user.points.toLocaleString()}
                     </div>
                     <div className="col-span-2 text-right text-muted-foreground">
-<<<<<<< HEAD
                       {user.answers?.toLocaleString?.() ?? 0}
                     </div>
                     <div className="col-span-2 text-right text-muted-foreground">
@@ -286,16 +173,6 @@ const Leaderboard = () => {
                     </div>
                     <div className="col-span-1 text-right">
                       <span className="text-warning">{user.badgeCount ?? 0}</span>
-=======
-                      {user.answers.toLocaleString()}
-                    </div>
-                    <div className="col-span-2 text-right">
-                      <span className="text-success">{user.acceptedRate}%</span>
-                    </div>
-                    <div className="col-span-1 text-right flex items-center justify-end gap-1">
-                      <Star className="w-4 h-4 text-warning" />
-                      {user.streak}
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
                     </div>
                   </div>
                 ))}

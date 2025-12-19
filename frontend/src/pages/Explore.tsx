@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 import { useMemo, useState } from "react";
-=======
-import { useState } from "react";
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 import { Search, Filter, TrendingUp, Clock, Flame, Grid3X3, List } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -12,12 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-<<<<<<< HEAD
 import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
-=======
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 
 const categories = [
   { id: "all", label: "All", count: 12543 },
@@ -35,7 +28,6 @@ const filters = [
   { id: "hot", label: "Hot", icon: Flame },
 ];
 
-<<<<<<< HEAD
 // Backend-powered list; we fall back to empty array while loading
 type QuestionItem = {
   id: string;
@@ -49,89 +41,12 @@ type QuestionItem = {
   isSolved: boolean;
   createdAt: string;
 };
-=======
-const mockProblems = [
-  {
-    id: 1,
-    title: "How to implement infinite scroll with React Query and intersection observer?",
-    preview: "I'm building a feed that needs to load more content as the user scrolls. What's the best approach combining React Query with intersection observer?",
-    author: { name: "David Kim", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=David" },
-    tags: ["React", "React Query", "Performance"],
-    votes: 234,
-    answers: 18,
-    views: 5670,
-    timeAgo: "3h ago",
-    isSolved: true,
-  },
-  {
-    id: 2,
-    title: "Best practices for error handling in Express.js middleware",
-    preview: "Looking for a comprehensive error handling strategy for my Express application. How should I structure error middleware and handle async errors?",
-    author: { name: "Emily Chen", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Emily" },
-    tags: ["Node.js", "Express", "Error Handling"],
-    votes: 178,
-    answers: 12,
-    views: 3450,
-    timeAgo: "5h ago",
-    isSolved: false,
-  },
-  {
-    id: 3,
-    title: "Docker compose networking between containers not working",
-    preview: "My containers can't communicate with each other in Docker compose. I've set up a network but still getting connection refused errors.",
-    author: { name: "Marcus Johnson", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus" },
-    tags: ["Docker", "DevOps", "Networking"],
-    votes: 145,
-    answers: 9,
-    views: 2890,
-    timeAgo: "8h ago",
-    isSolved: true,
-  },
-  {
-    id: 4,
-    title: "Implementing OAuth 2.0 with PKCE flow in a React Native app",
-    preview: "Need guidance on implementing secure OAuth authentication in React Native using the PKCE flow. What libraries work best?",
-    author: { name: "Sophia Williams", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia" },
-    tags: ["React Native", "OAuth", "Security"],
-    votes: 167,
-    answers: 14,
-    views: 4120,
-    timeAgo: "12h ago",
-    isSolved: false,
-  },
-  {
-    id: 5,
-    title: "Fine-tuning GPT models for domain-specific tasks",
-    preview: "What's the recommended approach for fine-tuning large language models for specialized domains? Looking for best practices and cost optimization.",
-    author: { name: "Alex Turner", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=AlexT" },
-    tags: ["AI", "GPT", "Machine Learning"],
-    votes: 289,
-    answers: 21,
-    views: 7890,
-    timeAgo: "1d ago",
-    isSolved: true,
-  },
-  {
-    id: 6,
-    title: "Optimizing PostgreSQL queries with complex joins and aggregations",
-    preview: "My queries are taking too long with multiple joins and group by clauses. How can I optimize performance without denormalizing?",
-    author: { name: "Rachel Green", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Rachel" },
-    tags: ["PostgreSQL", "Database", "Performance"],
-    votes: 198,
-    answers: 16,
-    views: 4560,
-    timeAgo: "1d ago",
-    isSolved: false,
-  },
-];
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 
 const Explore = () => {
   const [activeFilter, setActiveFilter] = useState("trending");
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-<<<<<<< HEAD
   const sort = useMemo(() => {
     if (activeFilter === "trending") return "views";
     if (activeFilter === "hot") return "votes";
@@ -153,8 +68,6 @@ const Explore = () => {
 
   const items: QuestionItem[] = (data?.questions || []) as QuestionItem[];
 
-=======
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -253,7 +166,6 @@ const Explore = () => {
                 "gap-4",
                 viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2" : "flex flex-col"
               )}>
-<<<<<<< HEAD
                 {isLoading && (
                   <div className="text-muted-foreground">Loading questions...</div>
                 )}
@@ -276,22 +188,13 @@ const Explore = () => {
                     timeAgo={formatDistanceToNow(new Date(q.createdAt), { addSuffix: true })}
                     isSolved={q.isSolved}
                   />
-=======
-                {mockProblems.map((problem) => (
-                  <ProblemCard key={problem.id} {...problem} />
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
                 ))}
               </div>
 
               {/* Load More */}
               <div className="flex justify-center mt-8">
-<<<<<<< HEAD
                 <Button variant="outline" size="lg" onClick={() => refetch()} disabled={isFetching}>
                   {isFetching ? "Loading..." : "Refresh"}
-=======
-                <Button variant="outline" size="lg">
-                  Load More Problems
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
                 </Button>
               </div>
             </div>

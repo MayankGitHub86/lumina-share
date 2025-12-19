@@ -1,17 +1,8 @@
-<<<<<<< HEAD
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-=======
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-<<<<<<< HEAD
-=======
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
->>>>>>> 20a36825eeb7c80c6c05af70e41f3fb47753d6d4
 @layer base {
   :root {
     /* Deep Space Dark Theme */
