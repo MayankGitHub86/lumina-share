@@ -29,7 +29,7 @@ export function AskQuestionDialog({ open, onOpenChange }: AskQuestionDialogProps
 
   const createQuestionMutation = useMutation({
     mutationFn: async (data: { title: string; content: string; tags: string[] }) => {
-      return api.questions.create(data.title, data.content, data.tags);
+      return api.createQuestion(data);
     },
     onSuccess: () => {
       toast.success("Question posted successfully!");

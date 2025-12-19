@@ -12,7 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const mainLinks = [
-  { href: "/", label: "Home", icon: Home },
+  { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/explore", label: "Explore", icon: Compass },
   { href: "/tags", label: "Tags", icon: Tag },
   { href: "/community", label: "Community", icon: Users },

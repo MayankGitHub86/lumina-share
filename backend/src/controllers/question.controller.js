@@ -53,14 +53,14 @@ const getAllQuestions = async (
           },
           tags: {
             include: {
-              tag
+              tag: true
             }
           },
           _count: {
             select: {
-              answers,
-              votes,
-              comments
+              answers: true,
+              votes: true,
+              comments: true
             }
           }
         },
@@ -118,18 +118,18 @@ const getTrendingQuestions = async (
             id: true,
             name: true,
             username: true,
-            avatar
+            avatar: true
           }
         },
         tags: {
           include: {
-            tag
+            tag: true
           }
         },
         _count: {
           select: {
-            answers,
-            votes
+            answers: true,
+            votes: true
           }
         }
       },
@@ -160,32 +160,32 @@ const getQuestionById = async (
       include: {
         author: {
           select: {
-            id,
-            name,
-            username,
-            avatar,
-            points
+            id: true,
+            name: true,
+            username: true,
+            avatar: true,
+            points: true
           }
         },
         tags: {
           include: {
-            tag
+            tag: true
           }
         },
         answers: {
           include: {
             author: {
               select: {
-                id,
-                name,
-                username,
-                avatar,
-                points
+                id: true,
+                name: true,
+                username: true,
+                avatar: true,
+                points: true
               }
             },
             _count: {
               select: {
-                votes
+                votes: true
               }
             }
           },
@@ -193,15 +193,15 @@ const getQuestionById = async (
             isAccepted: 'desc'
           }
         },
-        votes,
+        votes: true,
         comments: {
           include: {
             user: {
               select: {
-                id,
-                name,
-                username,
-                avatar
+                id: true,
+                name: true,
+                username: true,
+                avatar: true
               }
             }
           }
@@ -216,12 +216,12 @@ const getQuestionById = async (
     // Increment view count
     await prisma.question.update({
       where: { id },
-      data: { views: { increment } }
+      data: { views: { increment: 1 } }
     });
 
     res.json({
       success: true,
-      data
+      data: question
     });
   } catch (error) {
     next(error);
@@ -249,12 +249,12 @@ const createQuestion = async (
     const tagObjects = await Promise.all(
       tags.map(async (tagName) => {
         let tag = await prisma.tag.findUnique({
-          where: { name }
+          where: { name: tagName }
         });
 
         if (!tag) {
           tag = await prisma.tag.create({
-            data: { name }
+            data: { name: tagName }
           });
         }
 
@@ -278,29 +278,19 @@ const createQuestion = async (
       include: {
         author: {
           select: {
-            id,
-            name,
-            username,
-            avatar
+            id: true,
+            name: true,
+            username: true,
+            avatar: true
           }
         },
         tags: {
           include: {
-            tag
+            tag: true
           }
         }
       }
     });
-
-    // Update tag counts
-    await Promise.all(
-      tagObjects.map(tag =>
-        prisma.tag.update({
-          where: { id: tag.id },
-          data: { count: { increment: 1 } }
-        })
-      )
-    );
 
     // Notify subscribers about new question
     notifications.notify({
@@ -348,15 +338,15 @@ const updateQuestion = async (
       include: {
         author: {
           select: {
-            id,
-            name,
-            username,
-            avatar
+            id: true,
+            name: true,
+            username: true,
+            avatar: true
           }
         },
         tags: {
           include: {
-            tag
+            tag: true
           }
         }
       }
@@ -364,7 +354,7 @@ const updateQuestion = async (
 
     res.json({
       success: true,
-      data
+      data: updatedQuestion
     });
   } catch (error) {
     next(error);
@@ -417,7 +407,7 @@ const saveQuestion = async (
     await prisma.savedQuestion.create({
       data: {
         userId,
-        questionId
+        questionId: id
       }
     });
 
@@ -443,7 +433,7 @@ const unsaveQuestion = async (
       where: {
         userId_questionId: {
           userId,
-          questionId
+          questionId: id
         }
       }
     });
