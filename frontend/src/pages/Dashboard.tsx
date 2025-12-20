@@ -1,16 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AskQuestionDialog } from "@/components/AskQuestionDialog";
 import { useAuth } from "@/context/auth";
 import { useNavigate } from "react-router-dom";
-import { Sparkles, MessageSquare, Bookmark, TrendingUp, Award, Users } from "lucide-react";
+import { Sparkles, MessageSquare, Bookmark, TrendingUp, Award, Users, Plus } from "lucide-react";
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isAskDialogOpen, setIsAskDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -23,6 +25,15 @@ const Dashboard = () => {
   }
 
   const quickActions = [
+    {
+      title: "Ask Question",
+      description: "Get help from the community by asking a question",
+      icon: Plus,
+      action: () => setIsAskDialogOpen(true),
+      color: "text-primary",
+      bgColor: "bg-gradient-to-r from-primary to-secondary",
+      featured: true,
+    },
     {
       title: "Explore Questions",
       description: "Browse and discover questions from the community",
@@ -132,16 +143,20 @@ const Dashboard = () => {
                 return (
                   <Card
                     key={action.title}
-                    className="hover:shadow-lg transition-all hover:scale-[1.02] cursor-pointer group"
-                    onClick={() => navigate(action.href)}
+                    className={`hover:shadow-lg transition-all hover:scale-[1.02] cursor-pointer group ${
+                      action.featured ? 'border-primary/50 shadow-primary/10' : ''
+                    }`}
+                    onClick={() => action.action ? action.action() : navigate(action.href)}
                   >
                     <CardHeader>
                       <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-lg ${action.bgColor}`}>
-                          <Icon className={`h-6 w-6 ${action.color}`} />
+                        <div className={`p-3 rounded-lg ${action.bgColor} ${action.featured ? 'text-white' : ''}`}>
+                          <Icon className={`h-6 w-6 ${action.featured ? 'text-white' : action.color}`} />
                         </div>
                         <div className="flex-1">
-                          <CardTitle className="group-hover:text-primary transition-colors">
+                          <CardTitle className={`group-hover:text-primary transition-colors ${
+                            action.featured ? 'text-primary' : ''
+                          }`}>
                             {action.title}
                           </CardTitle>
                           <CardDescription className="mt-1">
@@ -179,6 +194,21 @@ const Dashboard = () => {
         </main>
         </div>
       </div>
+
+      {/* Floating Action Button */}
+      <Button
+        onClick={() => setIsAskDialogOpen(true)}
+        className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all hover:scale-110 z-50"
+        size="icon"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+
+      {/* Ask Question Dialog */}
+      <AskQuestionDialog 
+        open={isAskDialogOpen} 
+        onOpenChange={setIsAskDialogOpen} 
+      />
     </div>
   );
 };

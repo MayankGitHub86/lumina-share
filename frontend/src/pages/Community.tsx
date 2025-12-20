@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Users, Trophy, MessageCircle, Star, Search, Filter } from "lucide-react";
+import { Users, Trophy, MessageCircle, Star, Search, Filter, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Sidebar } from "@/components/Sidebar";
+import { AskQuestionDialog } from "@/components/AskQuestionDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -92,6 +93,7 @@ const members = [
 const Community = () => {
   const [activeTab, setActiveTab] = useState("members");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isAskDialogOpen, setIsAskDialogOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">
@@ -238,6 +240,21 @@ const Community = () => {
         </div>
       </main>
       <Footer />
+
+      {/* Floating Action Button */}
+      <Button
+        onClick={() => setIsAskDialogOpen(true)}
+        className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all hover:scale-110 z-50"
+        size="icon"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+
+      {/* Ask Question Dialog */}
+      <AskQuestionDialog 
+        open={isAskDialogOpen} 
+        onOpenChange={setIsAskDialogOpen} 
+      />
     </div>
   );
 };

@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { Search, Filter, TrendingUp, Clock, Flame, Grid3X3, List } from "lucide-react";
+import { Search, Filter, TrendingUp, Clock, Flame, Grid3X3, List, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Sidebar } from "@/components/Sidebar";
 import { ProblemCard } from "@/components/ProblemCard";
+import { AskQuestionDialog } from "@/components/AskQuestionDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,7 @@ const Explore = () => {
   const [activeFilter, setActiveFilter] = useState("trending");
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [isAskDialogOpen, setIsAskDialogOpen] = useState(false);
 
   const sort = useMemo(() => {
     if (activeFilter === "trending") return "views";
@@ -200,6 +202,21 @@ const Explore = () => {
           </div>
       </main>
       <Footer />
+
+      {/* Floating Action Button */}
+      <Button
+        onClick={() => setIsAskDialogOpen(true)}
+        className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-2xl bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-all hover:scale-110 z-50"
+        size="icon"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+
+      {/* Ask Question Dialog */}
+      <AskQuestionDialog 
+        open={isAskDialogOpen} 
+        onOpenChange={setIsAskDialogOpen} 
+      />
     </div>
   );
 };

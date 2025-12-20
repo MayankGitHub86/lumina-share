@@ -128,6 +128,19 @@ export function Navbar() {
                 )}
               </div>
 
+              {/* Ask Question Button - Desktop Only */}
+              {user && (
+                <Button 
+                  variant="default"
+                  size="sm"
+                  className="hidden md:flex items-center gap-2 bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
+                  onClick={() => setIsAskDialogOpen(true)}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Ask Question
+                </Button>
+              )}
+
               {/* Notifications */}
               <NotificationPanel />
 

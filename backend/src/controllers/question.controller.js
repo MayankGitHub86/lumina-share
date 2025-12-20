@@ -138,9 +138,22 @@ const getTrendingQuestions = async (
       }
     });
 
+    const formattedQuestions = questions.map(q => ({
+      id: q.id,
+      title: q.title,
+      preview: q.preview,
+      author: q.author,
+      tags: q.tags.map(t => t.tag.name),
+      votes: q._count.votes,
+      answers: q._count.answers,
+      views: q.views,
+      isSolved: q.isSolved,
+      createdAt: q.createdAt
+    }));
+
     res.json({
       success: true,
-      data
+      data: formattedQuestions
     });
   } catch (error) {
     next(error);
