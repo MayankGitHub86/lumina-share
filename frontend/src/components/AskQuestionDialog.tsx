@@ -31,7 +31,44 @@ export function AskQuestionDialog({ open, onOpenChange }: AskQuestionDialogProps
     mutationFn: async (data: { title: string; content: string; tags: string[] }) => {
       return api.createQuestion(data);
     },
-    onSuccess: () => {
+    onSuccess: (res: any) => {
+      const q = res?.data;
+
+      // Optimistically inject the new question into any cached question lists so the
+      // Explore dashboard updates immediately, then let the refetch keep things in sync.
+      if (q) {
+        const mapped = {
+          id: q.id,
+          title: q.title,
+          preview: q.preview || q.content?.slice(0, 200) || "",
+          author: q.author,
+          tags: (q.tags || []).map((t: any) => t.tag?.name || t.name).filter(Boolean),
+          votes: 0,
+          answers: 0,
+          views: 0,
+          isSolved: false,
+          createdAt: q.createdAt || new Date().toISOString(),
+        };
+
+        // Update all relevant question caches (all categories that match the tags)
+        queryClient.setQueriesData({ queryKey: ["questions"] }, (old: any) => {
+          if (!old) return old;
+          const prevQuestions = old.questions || [];
+          const pagination = old.pagination
+            ? { ...old.pagination, total: (old.pagination.total || 0) + 1 }
+            : undefined;
+
+          return {
+            ...old,
+            questions: [mapped, ...prevQuestions],
+            pagination,
+          };
+        });
+
+        // Also invalidate tags to update category counts
+        queryClient.invalidateQueries({ queryKey: ["tags"] });
+      }
+
       toast.success("Question posted successfully!");
       queryClient.invalidateQueries({ queryKey: ["questions"] });
       handleClose();

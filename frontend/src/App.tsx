@@ -12,6 +12,7 @@ import Tags from "./pages/Tags";
 import Trending from "./pages/Trending";
 import Leaderboard from "./pages/Leaderboard";
 import Settings from "./pages/Settings";
+import QuestionDetail from "./pages/QuestionDetail";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -30,11 +31,12 @@ const AppContent = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
+            <Route path="/questions/:id" element={<ProtectedRoute><QuestionDetail /></ProtectedRoute>} />
             <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
             <Route path="/saved" element={<ProtectedRoute><Saved /></ProtectedRoute>} />
             <Route path="/tags" element={<Tags />} />

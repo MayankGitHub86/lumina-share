@@ -8,12 +8,28 @@ const getAllTags = async (
 ) => {
   try {
     const tags = await prisma.tag.findMany({
-      orderBy: { count: 'desc' }
+      include: {
+        _count: {
+          select: {
+            questions: true
+          }
+        }
+      }
     });
+
+    const formattedTags = tags
+      .map(tag => ({
+        id: tag.id,
+        name: tag.name,
+        description: tag.description,
+        count: tag._count.questions,
+        createdAt: tag.createdAt
+      }))
+      .sort((a, b) => b.count - a.count);
 
     res.json({
       success: true,
-      data
+      data: formattedTags
     });
   } catch (error) {
     next(error);
@@ -26,14 +42,32 @@ const getPopularTags = async (
   next
 ) => {
   try {
+    const { limit = 10 } = req.query;
+    
     const tags = await prisma.tag.findMany({
-      take,
-      orderBy: { count: 'desc' }
+      include: {
+        _count: {
+          select: {
+            questions: true
+          }
+        }
+      }
     });
+
+    const formattedTags = tags
+      .map(tag => ({
+        id: tag.id,
+        name: tag.name,
+        description: tag.description,
+        count: tag._count.questions,
+        createdAt: tag.createdAt
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, Number(limit));
 
     res.json({
       success: true,
-      data
+      data: formattedTags
     });
   } catch (error) {
     next(error);
@@ -54,12 +88,12 @@ const getQuestionsByTag = async (
       where: {
         tags: {
           some: {
-            tagId
+            tagId: id
           }
         }
       },
       skip,
-      take: limit,
+      take: Number(limit),
       include: {
         author: {
           select: {
@@ -86,7 +120,7 @@ const getQuestionsByTag = async (
 
     res.json({
       success: true,
-      data
+      data: questions
     });
   } catch (error) {
     next(error);

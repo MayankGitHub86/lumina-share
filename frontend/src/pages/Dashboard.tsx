@@ -8,6 +8,8 @@ import { AskQuestionDialog } from "@/components/AskQuestionDialog";
 import { useAuth } from "@/context/auth";
 import { useNavigate } from "react-router-dom";
 import { Sparkles, MessageSquare, Bookmark, TrendingUp, Award, Users, Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -23,6 +25,16 @@ const Dashboard = () => {
   if (!user) {
     return null;
   }
+
+  // Fetch user stats from backend
+  const { data: userStats } = useQuery({
+    queryKey: ["user-stats", user.id],
+    queryFn: async () => {
+      const res: any = await api.getUserStats(user.id);
+      return res.data;
+    },
+    enabled: !!user?.id,
+  });
 
   const quickActions = [
     {
@@ -71,25 +83,25 @@ const Dashboard = () => {
   const stats = [
     {
       label: "Reputation",
-      value: user.points || 0,
+      value: userStats?.points || user.points || 0,
       icon: Award,
       color: "text-yellow-500",
     },
     {
       label: "Questions Asked",
-      value: 0,
+      value: userStats?.questionsAsked || 0,
       icon: MessageSquare,
       color: "text-blue-500",
     },
     {
       label: "Answers Given",
-      value: 0,
+      value: userStats?.answersGiven || 0,
       icon: MessageSquare,
       color: "text-green-500",
     },
     {
       label: "Saved Items",
-      value: 0,
+      value: userStats?.savedItems || 0,
       icon: Bookmark,
       color: "text-purple-500",
     },

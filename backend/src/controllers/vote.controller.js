@@ -23,6 +23,15 @@ const vote = async (
       throw new AppError('Either questionId or answerId is required', 400);
     }
 
+    // Validate MongoDB ObjectID format
+    const objectIdRegex = /^[a-f\d]{24}$/i;
+    if (questionId && !objectIdRegex.test(questionId)) {
+      throw new AppError('Invalid question ID format', 400);
+    }
+    if (answerId && !objectIdRegex.test(answerId)) {
+      throw new AppError('Invalid answer ID format', 400);
+    }
+
     // Check if vote already exists
     const existingVote = await prisma.vote.findFirst({
       where: {

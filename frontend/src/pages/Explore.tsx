@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Search, Filter, TrendingUp, Clock, Flame, Grid3X3, List, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -13,15 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 
-const categories = [
-  { id: "all", label: "All", count: 12543 },
-  { id: "frontend", label: "Frontend", count: 3421 },
-  { id: "backend", label: "Backend", count: 2876 },
-  { id: "devops", label: "DevOps", count: 1234 },
-  { id: "mobile", label: "Mobile", count: 987 },
-  { id: "ai-ml", label: "AI/ML", count: 2156 },
-  { id: "database", label: "Database", count: 1869 },
-];
+
 
 const filters = [
   { id: "trending", label: "Trending", icon: TrendingUp },
@@ -44,10 +37,31 @@ type QuestionItem = {
 };
 
 const Explore = () => {
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category');
+  
   const [activeFilter, setActiveFilter] = useState("trending");
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isAskDialogOpen, setIsAskDialogOpen] = useState(false);
+
+  // Set category from URL parameter
+  useEffect(() => {
+    if (categoryParam) {
+      setActiveCategory(categoryParam);
+    }
+  }, [categoryParam]);
+
+  // Fetch tags/categories from backend
+  const { data: tagsData, isError: tagsError } = useQuery({
+    queryKey: ["tags"],
+    queryFn: async () => {
+      const res: any = await api.getAllTags();
+      return res.data;
+    },
+    retry: 1,
+    staleTime: 30000,
+  });
 
   const sort = useMemo(() => {
     if (activeFilter === "trending") return "views";
@@ -66,9 +80,23 @@ const Explore = () => {
       });
       return res.data;
     },
+    retry: 1,
+    staleTime: 10000,
   });
 
   const items: QuestionItem[] = (data?.questions || []) as QuestionItem[];
+
+  // Build dynamic categories from tags with error handling
+  const tags = (tagsData || []) as Array<{ id: string; name: string; count: number }>;
+  const totalQuestions = data?.pagination?.total || tags.reduce((sum, tag) => sum + tag.count, 0);
+  const categories = [
+    { id: "all", label: "All", count: totalQuestions },
+    ...tags.slice(0, 10).map(tag => ({
+      id: tag.name,
+      label: tag.name.charAt(0).toUpperCase() + tag.name.slice(1),
+      count: tag.count
+    }))
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -144,6 +172,9 @@ const Explore = () => {
 
                 {/* Categories */}
                 <div className="flex flex-wrap gap-2 mt-4">
+                  {tagsError && (
+                    <div className="text-xs text-muted-foreground">Unable to load categories</div>
+                  )}
                   {categories.map((category) => (
                     <button
                       key={category.id}
@@ -179,6 +210,7 @@ const Explore = () => {
                 {!isLoading && !isError && items.map((q) => (
                   <ProblemCard
                     key={q.id}
+                    id={q.id}
                     title={q.title}
                     preview={q.preview}
                     author={{ name: q.author.name, avatar: q.author.avatar }}

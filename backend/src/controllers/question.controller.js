@@ -105,11 +105,33 @@ const getTrendingQuestions = async (
   next
 ) => {
   try {
+    const { period = 'week' } = req.query;
+    
+    // Calculate time threshold based on period
+    let timeThreshold;
+    const now = Date.now();
+    switch (period) {
+      case 'today':
+        timeThreshold = new Date(now - 24 * 60 * 60 * 1000);
+        break;
+      case 'week':
+        timeThreshold = new Date(now - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        timeThreshold = new Date(now - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'all':
+        timeThreshold = new Date(0); // Beginning of time
+        break;
+      default:
+        timeThreshold = new Date(now - 7 * 24 * 60 * 60 * 1000);
+    }
+
     const questions = await prisma.question.findMany({
       take: 10,
       where: {
         createdAt: {
-          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
+          gte: timeThreshold
         }
       },
       include: {
@@ -167,6 +189,11 @@ const getQuestionById = async (
 ) => {
   try {
     const { id } = req.params;
+
+    // Validate MongoDB ObjectID format (24 character hex string)
+    if (!id || !/^[a-f\d]{24}$/i.test(id)) {
+      throw new AppError('Invalid question ID format', 400);
+    }
 
     const question = await prisma.question.findUnique({
       where: { id },
@@ -417,16 +444,44 @@ const saveQuestion = async (
     const { id } = req.params;
     const userId = req.userId;
 
-    await prisma.savedQuestion.create({
+    console.log('Save question called:', { questionId: id, userId });
+
+    // Validate MongoDB ObjectID format
+    if (!id || !/^[a-f\d]{24}$/i.test(id)) {
+      throw new AppError('Invalid question ID format', 400);
+    }
+
+    // Check if already saved
+    const existing = await prisma.savedQuestion.findUnique({
+      where: {
+        userId_questionId: {
+          userId,
+          questionId: id
+        }
+      }
+    });
+
+    if (existing) {
+      console.log('Question already saved');
+      return res.json({
+        success: true,
+        message: 'Question already saved'
+      });
+    }
+
+    const savedQuestion = await prisma.savedQuestion.create({
       data: {
         userId,
         questionId: id
       }
     });
 
+    console.log('Question saved successfully:', savedQuestion);
+
     res.json({
       success: true,
-      message: 'Question saved successfully'
+      message: 'Question saved successfully',
+      data: savedQuestion
     });
   } catch (error) {
     next(error);
@@ -442,18 +497,26 @@ const unsaveQuestion = async (
     const { id } = req.params;
     const userId = req.userId;
 
-    await prisma.savedQuestion.delete({
+    console.log('Unsave question called:', { questionId: id, userId });
+
+    // Validate MongoDB ObjectID format
+    if (!id || !/^[a-f\d]{24}$/i.test(id)) {
+      throw new AppError('Invalid question ID format', 400);
+    }
+
+    // Use deleteMany which doesn't fail if record doesn't exist
+    const result = await prisma.savedQuestion.deleteMany({
       where: {
-        userId_questionId: {
-          userId,
-          questionId: id
-        }
+        userId,
+        questionId: id
       }
     });
 
+    console.log('Unsave result:', result);
+
     res.json({
       success: true,
-      message: 'Question unsaved successfully'
+      message: result.count > 0 ? 'Question unsaved successfully' : 'Question was not saved'
     });
   } catch (error) {
     next(error);

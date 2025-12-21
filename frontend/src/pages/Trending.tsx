@@ -5,6 +5,9 @@ import { Footer } from "@/components/Footer";
 import { Sidebar } from "@/components/Sidebar";
 import { ProblemCard } from "@/components/ProblemCard";
 import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
+import { formatDistanceToNow } from "date-fns";
 
 const timeFilters = [
   { id: "today", label: "Today", icon: Clock },
@@ -13,76 +16,31 @@ const timeFilters = [
   { id: "all", label: "All Time", icon: TrendingUp },
 ];
 
-const trendingProblems = [
-  {
-    id: 1,
-    title: "How to implement server-side rendering with React 19 and streaming?",
-    preview: "With the new React 19 features, I'm trying to understand the best practices for implementing SSR with streaming. What's the recommended approach?",
-    author: { name: "Kevin Zhang", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Kevin" },
-    tags: ["React 19", "SSR", "Streaming"],
-    votes: 567,
-    answers: 34,
-    views: 12450,
-    timeAgo: "6h ago",
-    isSolved: true,
-    trendScore: 98,
-  },
-  {
-    id: 2,
-    title: "Understanding the new use() hook in React 19",
-    preview: "Can someone explain the new use() hook and when to use it instead of useEffect or useSuspense?",
-    author: { name: "Maria Garcia", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Maria" },
-    tags: ["React 19", "Hooks", "use()"],
-    votes: 432,
-    answers: 28,
-    views: 9870,
-    timeAgo: "12h ago",
-    isSolved: true,
-    trendScore: 94,
-  },
-  {
-    id: 3,
-    title: "Bun vs Node.js: Performance benchmarks for production APIs",
-    preview: "I'm considering migrating our API from Node.js to Bun. Has anyone done extensive benchmarks for real-world production workloads?",
-    author: { name: "James Wilson", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=James" },
-    tags: ["Bun", "Node.js", "Performance"],
-    votes: 389,
-    answers: 21,
-    views: 8760,
-    timeAgo: "1d ago",
-    isSolved: false,
-    trendScore: 89,
-  },
-  {
-    id: 4,
-    title: "Building AI agents with LangChain and GPT-4 Turbo",
-    preview: "Looking for best practices on building autonomous AI agents that can perform complex multi-step tasks using LangChain.",
-    author: { name: "Priya Sharma", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Priya" },
-    tags: ["AI", "LangChain", "GPT-4"],
-    votes: 345,
-    answers: 19,
-    views: 7650,
-    timeAgo: "1d ago",
-    isSolved: true,
-    trendScore: 85,
-  },
-  {
-    id: 5,
-    title: "Implementing edge computing with Cloudflare Workers",
-    preview: "What are the best patterns for deploying serverless functions at the edge with Cloudflare Workers for global low-latency APIs?",
-    author: { name: "Tom Brown", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Tom" },
-    tags: ["Edge Computing", "Cloudflare", "Serverless"],
-    votes: 298,
-    answers: 16,
-    views: 6540,
-    timeAgo: "2d ago",
-    isSolved: false,
-    trendScore: 78,
-  },
-];
-
 const Trending = () => {
   const [activeFilter, setActiveFilter] = useState("week");
+
+  // Fetch trending questions from backend
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["trending-questions", activeFilter],
+    queryFn: async () => {
+      const res: any = await api.getTrendingQuestions(activeFilter);
+      return res.data;
+    },
+  });
+
+  const trendingProblems = (data || []).map((q: any, index: number) => ({
+    id: q.id,
+    title: q.title,
+    preview: q.preview,
+    author: q.author,
+    tags: q.tags,
+    votes: q.votes,
+    answers: q.answers,
+    views: q.views,
+    timeAgo: formatDistanceToNow(new Date(q.createdAt), { addSuffix: true }),
+    isSolved: q.isSolved,
+    trendScore: Math.max(50, 100 - index * 5), // Calculate trend score based on position
+  }));
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,7 +90,16 @@ const Trending = () => {
 
               {/* Trending Problems */}
               <div className="space-y-4">
-                {trendingProblems.map((problem, index) => (
+                {isLoading && (
+                  <div className="text-center text-muted-foreground py-8">Loading trending questions...</div>
+                )}
+                {isError && (
+                  <div className="text-center text-destructive py-8">Failed to load trending questions</div>
+                )}
+                {!isLoading && !isError && trendingProblems.length === 0 && (
+                  <div className="text-center text-muted-foreground py-8">No trending questions found</div>
+                )}
+                {!isLoading && !isError && trendingProblems.map((problem: any, index: number) => (
                   <div key={problem.id} className="relative">
                     <div className="absolute -left-4 top-6 flex items-center gap-2">
                       <span className={cn(

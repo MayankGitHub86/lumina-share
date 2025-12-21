@@ -93,6 +93,12 @@ class ApiService {
     });
   }
 
+  async getSavedQuestions(userId: string) {
+    return this.request(`/users/${userId}/saved`, {
+      requiresAuth: true,
+    });
+  }
+
   // Questions
   async getAllQuestions(params?: {
     page?: number;
@@ -101,12 +107,21 @@ class ApiService {
     search?: string;
     sort?: string;
   }) {
-    const query = new URLSearchParams(params as any).toString();
+    // Filter out undefined values to prevent "undefined" string in URL
+    const cleanParams: Record<string, string> = {};
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          cleanParams[key] = String(value);
+        }
+      });
+    }
+    const query = new URLSearchParams(cleanParams).toString();
     return this.request(`/questions?${query}`);
   }
 
-  async getTrendingQuestions() {
-    return this.request('/questions/trending');
+  async getTrendingQuestions(period?: string) {
+    return this.request(`/questions/trending?period=${period || 'week'}`);
   }
 
   async getQuestionById(id: string) {

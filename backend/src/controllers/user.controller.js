@@ -68,26 +68,26 @@ const getLeaderboard = async (
   next
 ) => {
   try {
-    const { period = 'all' } = req.query;
+    const { period = 'all', limit = 10 } = req.query;
     
     const users = await prisma.user.findMany({
-      take,
+      take: Number(limit),
       select: {
-        id,
-        name,
-        username,
-        avatar,
-        points,
+        id: true,
+        name: true,
+        username: true,
+        avatar: true,
+        points: true,
         _count: {
           select: {
-            answers,
-            questions,
-            badges
+            answers: true,
+            questions: true,
+            badges: true
           }
         },
         badges: {
           include: {
-            badge
+            badge: true
           }
         }
       },
@@ -104,7 +104,7 @@ const getLeaderboard = async (
 
     res.json({
       success: true,
-      data
+      data: leaderboard
     });
   } catch (error) {
     next(error);
@@ -124,14 +124,15 @@ const getUserById = async (
       include: {
         badges: {
           include: {
-            badge
+            badge: true
           }
         },
         _count: {
           select: {
-            questions,
-            answers,
-            votes
+            questions: true,
+            answers: true,
+            votes: true,
+            savedQuestions: true
           }
         }
       }
@@ -145,7 +146,7 @@ const getUserById = async (
 
     res.json({
       success: true,
-      data
+      data: userWithoutPassword
     });
   } catch (error) {
     next(error);
@@ -163,13 +164,14 @@ const getUserStats = async (
     const stats = await prisma.user.findUnique({
       where: { id },
       select: {
-        points,
+        points: true,
         _count: {
           select: {
-            questions,
-            answers,
-            badges,
-            votes
+            questions: true,
+            answers: true,
+            badges: true,
+            votes: true,
+            savedQuestions: true
           }
         }
       }
@@ -181,7 +183,14 @@ const getUserStats = async (
 
     res.json({
       success: true,
-      data
+      data: {
+        points: stats.points,
+        questionsAsked: stats._count.questions,
+        answersGiven: stats._count.answers,
+        savedItems: stats._count.savedQuestions,
+        votes: stats._count.votes,
+        badges: stats._count.badges
+      }
     });
   } catch (error) {
     next(error);
@@ -205,39 +214,84 @@ const updateUser = async (
       where: { id },
       data: { name, bio, avatar },
       select: {
-        id,
-        name,
-        username,
-        email,
-        avatar,
-        bio,
-        points
+        id: true,
+        name: true,
+        username: true,
+        email: true,
+        avatar: true,
+        bio: true,
+        points: true
       }
     });
 
     res.json({
       success: true,
-      data
+      data: user
     });
   } catch (error) {
     next(error);
   }
 };
 
+const getSavedQuestions = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const { id } = req.params;
 
-module.exports = {
-  getAllUsers,
-  getLeaderboard,
-  getUserById,
-  getUserStats,
-  updateUser
+    const savedQuestions = await prisma.savedQuestion.findMany({
+      where: { userId: id },
+      include: {
+        question: {
+          include: {
+            author: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                avatar: true
+              }
+            },
+            tags: {
+              include: {
+                tag: true
+              }
+            },
+            _count: {
+              select: {
+                answers: true,
+                votes: true,
+                comments: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: { savedAt: 'desc' }
+    });
+
+    const formattedQuestions = savedQuestions.map(sq => ({
+      ...sq.question,
+      savedAt: sq.savedAt,
+      tags: sq.question.tags.map(t => t.tag)
+    }));
+
+    res.json({
+      success: true,
+      data: formattedQuestions
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 
-
 module.exports = {
   getAllUsers,
   getLeaderboard,
   getUserById,
   getUserStats,
-  updateUser
+  updateUser,
+  getSavedQuestions
 };
