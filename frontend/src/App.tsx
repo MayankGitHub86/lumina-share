@@ -16,9 +16,11 @@ import QuestionDetail from "./pages/QuestionDetail";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import Contact from "./pages/Contact";
 import { AuthProvider, useAuth } from "./context/auth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import useNotifications from "./hooks/use-notifications";
+import { BackgroundCarousel } from "./components/BackgroundCarousel";
 
 const queryClient = new QueryClient();
 
@@ -29,11 +31,13 @@ const AppContent = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <BackgroundCarousel />
         <Toaster />
         <Sonner />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/explore" element={<ProtectedRoute><Explore /></ProtectedRoute>} />
             <Route path="/questions/:id" element={<ProtectedRoute><QuestionDetail /></ProtectedRoute>} />

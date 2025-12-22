@@ -108,11 +108,11 @@ export function ProblemCard({
     <article
       onClick={() => navigate(`/questions/${id}`)}
       className={cn(
-        "glass card-hover rounded-2xl p-6 group cursor-pointer",
+        "glass card-hover rounded-2xl p-6 group cursor-pointer overflow-hidden",
         isLarge && "md:col-span-2"
       )}
     >
-      <div className="flex gap-4">
+      <div className="flex gap-4 overflow-hidden">
         {/* Voting */}
         <div className="flex flex-col items-center gap-1 shrink-0">
           <button 
@@ -133,17 +133,17 @@ export function ProblemCard({
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 overflow-hidden">
           {/* Title & Status */}
-          <div className="flex items-start gap-2 mb-2">
+          <div className="flex items-start gap-2 mb-2 overflow-hidden">
             <h3 className={cn(
-              "font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2",
+              "font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1 min-w-0",
               isLarge ? "text-xl" : "text-lg"
             )}>
               {title}
             </h3>
             {isSolved && (
-              <div className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-full bg-success/20 text-success text-xs font-medium">
+              <div className="shrink-0 flex items-center gap-1 px-2 py-1 rounded-full bg-success/20 text-success text-xs font-medium whitespace-nowrap">
                 <CheckCircle className="w-3 h-3" />
                 Solved
               </div>
@@ -152,34 +152,39 @@ export function ProblemCard({
 
           {/* Preview */}
           <p className={cn(
-            "text-muted-foreground mb-4 line-clamp-2",
+            "text-muted-foreground mb-4 line-clamp-2 overflow-hidden",
             isLarge && "line-clamp-3"
           )}>
             {preview}
           </p>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {tags.map((tag) => (
+          <div className="flex flex-wrap gap-2 mb-4 overflow-hidden">
+            {tags.slice(0, 4).map((tag) => (
               <Badge 
                 key={tag} 
                 variant="neon" 
-                className="text-xs cursor-pointer hover:opacity-80 transition-opacity"
+                className="text-xs cursor-pointer hover:opacity-80 transition-opacity truncate max-w-[120px]"
                 onClick={(e) => handleTagClick(e, tag)}
               >
                 {tag}
               </Badge>
             ))}
+            {tags.length > 4 && (
+              <Badge variant="outline" className="text-xs">
+                +{tags.length - 4}
+              </Badge>
+            )}
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between gap-4 text-sm">
+          <div className="flex items-center justify-between gap-4 text-sm overflow-hidden">
             {/* Author */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <img
                 src={author.avatar}
                 alt={author.name}
-                className="w-6 h-6 rounded-full ring-2 ring-white/10"
+                className="w-6 h-6 rounded-full ring-2 ring-white/10 shrink-0"
               />
               <span className="text-muted-foreground truncate">
                 {author.name}
@@ -187,16 +192,16 @@ export function ProblemCard({
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-4 text-muted-foreground shrink-0">
-              <span className="flex items-center gap-1">
+            <div className="flex items-center gap-3 text-muted-foreground shrink-0">
+              <span className="flex items-center gap-1 whitespace-nowrap">
                 <MessageCircle className="w-4 h-4" />
                 {answers}
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 whitespace-nowrap">
                 <Eye className="w-4 h-4" />
                 {views}
               </span>
-              <span className="flex items-center gap-1">
+              <span className="hidden sm:flex items-center gap-1 whitespace-nowrap">
                 <Clock className="w-4 h-4" />
                 {timeAgo}
               </span>

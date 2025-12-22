@@ -44,14 +44,14 @@ const Trending = () => {
   }));
 
   return (
-    <AnimatedPage className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen">
       <Navbar />
-      <main className="pt-20 pb-16">
-        <div className="container mx-auto px-6 max-w-[1400px]">
-          <div className="flex gap-6">
+      <main className="pt-16 pb-8">
+        <div className="container mx-auto px-4 max-w-[1800px]">
+          <div className="flex gap-4">
             <Sidebar />
             
-            <div className="flex-1 min-w-0 space-y-6">
+            <div className="flex-1 min-w-0 space-y-4">
               {/* Header */}
               <FadeIn>
                 <div className="mb-8">

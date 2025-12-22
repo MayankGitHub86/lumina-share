@@ -204,7 +204,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen text-foreground">
       {/* Back to Home button */}
       <div className="fixed top-4 left-4 z-50">
         <Link to="/">

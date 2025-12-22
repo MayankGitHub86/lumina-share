@@ -22,6 +22,7 @@ const navLinks = [
   { href: "/explore", label: "Explore", icon: Compass },
   { href: "/community", label: "Community", icon: Users },
   { href: "/saved", label: "Saved", icon: Bookmark },
+  { href: "/contact", label: "Contact", icon: Sparkles },
 ];
 
 export function Navbar() {

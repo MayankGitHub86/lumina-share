@@ -1,8 +1,13 @@
-import { TrendingUp, Clock, Flame, Filter } from "lucide-react";
+import { TrendingUp, Clock, Flame, Filter, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProblemCard } from "@/components/ProblemCard";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import api from "@/lib/api";
+import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const filters = [
   { id: "trending", label: "Trending", icon: TrendingUp },
@@ -10,80 +15,48 @@ const filters = [
   { id: "hot", label: "Hot", icon: Flame },
 ];
 
-const mockProblems = [
-  {
-    id: 1,
-    title: "How to optimize React component re-renders with useMemo and useCallback?",
-    preview: "I'm building a large dashboard application and noticing performance issues. The components are re-rendering frequently even when the data hasn't changed. What's the best approach to optimize this?",
-    author: { name: "Sarah Chen", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah" },
-    tags: ["React", "Performance", "Hooks"],
-    votes: 156,
-    answers: 12,
-    views: 3420,
-    timeAgo: "2h ago",
-    isSolved: true,
-  },
-  {
-    id: 2,
-    title: "Understanding TypeScript generics with constraints and conditional types",
-    preview: "I'm trying to create a type-safe utility function that works with different object shapes. How can I use generics with extends constraints and conditional types effectively?",
-    author: { name: "Alex Rivera", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex" },
-    tags: ["TypeScript", "Generics", "Types"],
-    votes: 89,
-    answers: 8,
-    views: 1890,
-    timeAgo: "4h ago",
-    isSolved: false,
-  },
-  {
-    id: 3,
-    title: "Best practices for handling authentication state in a Next.js application",
-    preview: "What's the recommended pattern for managing auth state across server and client components in Next.js 14? Should I use middleware, context, or a combination?",
-    author: { name: "Jordan Smith", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jordan" },
-    tags: ["Next.js", "Authentication", "React"],
-    votes: 234,
-    answers: 15,
-    views: 5670,
-    timeAgo: "6h ago",
-    isSolved: true,
-  },
-  {
-    id: 4,
-    title: "Implementing real-time notifications with WebSockets vs Server-Sent Events",
-    preview: "Building a notification system and weighing the pros and cons of WebSockets versus SSE. Which one provides better scalability and easier implementation for a medium-sized app?",
-    author: { name: "Maya Johnson", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Maya" },
-    tags: ["WebSockets", "SSE", "Real-time"],
-    votes: 67,
-    answers: 6,
-    views: 1234,
-    timeAgo: "8h ago",
-    isSolved: false,
-  },
-  {
-    id: 5,
-    title: "CSS Grid vs Flexbox: When to use which layout method?",
-    preview: "I often find myself confused about when to use CSS Grid versus Flexbox. Can someone explain the ideal use cases for each and how they can be combined effectively?",
-    author: { name: "Chris Taylor", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Chris" },
-    tags: ["CSS", "Grid", "Flexbox"],
-    votes: 198,
-    answers: 14,
-    views: 4560,
-    timeAgo: "12h ago",
-    isSolved: true,
-  },
-];
-
 export function FeaturedSection() {
   const [activeFilter, setActiveFilter] = useState("trending");
+  const navigate = useNavigate();
+
+  // Fetch questions based on active filter
+  const { data, isLoading } = useQuery({
+    queryKey: ["homepage-questions", activeFilter],
+    queryFn: async () => {
+      const sort = activeFilter === "recent" ? "recent" : activeFilter === "hot" ? "votes" : "views";
+      const res: any = await api.getAllQuestions({ page: 1, limit: 6, sort });
+      return res.data;
+    },
+  });
+
+  // Fetch top contributors
+  const { data: contributors } = useQuery({
+    queryKey: ["top-contributors"],
+    queryFn: async () => {
+      const res: any = await api.getLeaderboard("all");
+      return res.data?.slice(0, 5) || [];
+    },
+  });
+
+  // Fetch trending tags
+  const { data: tags } = useQuery({
+    queryKey: ["trending-tags"],
+    queryFn: async () => {
+      const res: any = await api.getAllTags();
+      return res.data?.slice(0, 7) || [];
+    },
+  });
+
+  const questions = data?.questions || [];
 
   return (
-    <section className="py-16 px-4">
-      <div className="container mx-auto">
-        <div className="flex flex-col lg:flex-row gap-8">
+    <section className="py-12 px-4 overflow-hidden">
+      <div className="container mx-auto max-w-7xl overflow-hidden">
+        <div className="flex flex-col lg:flex-row gap-6 overflow-hidden">
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0 overflow-hidden">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
                 Explore Problems
               </h2>
@@ -111,50 +84,78 @@ export function FeaturedSection() {
                     );
                   })}
                 </div>
-                <Button variant="glass" size="icon">
-                  <Filter className="w-4 h-4" />
-                </Button>
               </div>
             </div>
 
-            {/* Bento Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mockProblems.map((problem, index) => (
-                <ProblemCard
-                  key={problem.id}
-                  {...problem}
-                  isLarge={index === 0}
-                />
-              ))}
-            </div>
+            {/* Questions Grid */}
+            {isLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="glass rounded-xl p-6 animate-pulse">
+                    <div className="h-4 bg-muted rounded w-3/4 mb-3"></div>
+                    <div className="h-3 bg-muted rounded w-full mb-2"></div>
+                    <div className="h-3 bg-muted rounded w-2/3"></div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden">
+                {questions.map((question: any) => (
+                  <ProblemCard
+                    key={question.id}
+                    id={question.id}
+                    title={question.title}
+                    preview={question.preview || question.content?.substring(0, 150)}
+                    author={question.author}
+                    tags={question.tags?.map((t: any) => t.tag?.name || t.name) || []}
+                    votes={question._count?.votes || 0}
+                    answers={question._count?.answers || 0}
+                    views={question.views || 0}
+                    timeAgo={formatDistanceToNow(new Date(question.createdAt), { addSuffix: true })}
+                    isSolved={question.acceptedAnswerId !== null}
+                  />
+                ))}
+              </div>
+            )}
 
-            {/* Load More */}
-            <div className="flex justify-center mt-8">
-              <Button variant="outline" size="lg">
-                Load More Problems
+            {/* View All Button */}
+            <div className="flex justify-center mt-6">
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={() => navigate("/explore")}
+                className="gap-2"
+              >
+                View All Problems
+                <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
           </div>
 
           {/* Sidebar */}
           <aside className="hidden xl:block w-80 shrink-0">
-            <div className="sticky top-24 space-y-6">
+            <div className="sticky top-24 space-y-4">
               {/* Top Contributors */}
-              <div className="glass rounded-2xl p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
+              <motion.div 
+                className="glass rounded-xl p-5"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-primary" />
                   Top Contributors
                 </h3>
-                <ul className="space-y-4">
-                  {[
-                    { name: "Emma Watson", points: 12543, avatar: "Emma" },
-                    { name: "John Doe", points: 10234, avatar: "John" },
-                    { name: "Lisa Park", points: 8976, avatar: "Lisa" },
-                    { name: "Mike Chen", points: 7654, avatar: "Mike" },
-                    { name: "Anna Kim", points: 6543, avatar: "Anna" },
-                  ].map((user, index) => (
-                    <li key={user.name} className="flex items-center gap-3">
+                <ul className="space-y-3">
+                  {contributors?.map((user: any, index: number) => (
+                    <motion.li 
+                      key={user.id} 
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors"
+                      whileHover={{ x: 4 }}
+                      onClick={() => navigate("/community")}
+                    >
                       <span className={cn(
-                        "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
+                        "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
                         index === 0 && "bg-yellow-500/20 text-yellow-500",
                         index === 1 && "bg-gray-400/20 text-gray-400",
                         index === 2 && "bg-orange-500/20 text-orange-500",
@@ -163,7 +164,7 @@ export function FeaturedSection() {
                         {index + 1}
                       </span>
                       <img
-                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.avatar}`}
+                        src={user.avatar}
                         alt={user.name}
                         className="w-8 h-8 rounded-full"
                       />
@@ -172,30 +173,39 @@ export function FeaturedSection() {
                           {user.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {user.points.toLocaleString()} points
+                          {user.points?.toLocaleString()} points
                         </p>
                       </div>
-                    </li>
+                    </motion.li>
                   ))}
                 </ul>
-              </div>
+              </motion.div>
 
               {/* Trending Tags */}
-              <div className="glass rounded-2xl p-6">
-                <h3 className="text-lg font-semibold text-foreground mb-4">
-                  Trending This Week
+              <motion.div 
+                className="glass rounded-xl p-5"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Flame className="w-5 h-5 text-orange-500" />
+                  Trending Tags
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {["AI/ML", "React 19", "Bun", "Rust", "WebGPU", "Edge Functions", "tRPC"].map((tag) => (
-                    <span
-                      key={tag}
+                  {tags?.map((tag: any) => (
+                    <motion.span
+                      key={tag.id}
+                      onClick={() => navigate(`/explore?category=${tag.name}`)}
                       className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium hover:bg-primary/20 transition-colors cursor-pointer"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
-                      {tag}
-                    </span>
+                      {tag.name}
+                    </motion.span>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             </div>
           </aside>
         </div>
