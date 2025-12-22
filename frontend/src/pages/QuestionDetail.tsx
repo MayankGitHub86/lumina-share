@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowUp, ArrowDown, MessageCircle, Eye, Clock, CheckCircle, ArrowLeft } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +13,7 @@ import api from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import { useAuth } from "@/context/auth";
+import { AnimatedPage, FadeIn } from "@/components/AnimatedPage";
 
 const QuestionDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +22,8 @@ const QuestionDetail = () => {
   const queryClient = useQueryClient();
   const [commentContent, setCommentContent] = useState("");
   const [answerContent, setAnswerContent] = useState("");
+  const [questionVotes, setQuestionVotes] = useState(0);
+  const [answerVotes, setAnswerVotes] = useState<Record<string, number>>({});
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["question", id],
@@ -30,6 +32,39 @@ const QuestionDetail = () => {
       return res.data;
     },
     enabled: !!id,
+  });
+
+  // Fetch vote stats separately after question loads
+  useQuery({
+    queryKey: ["question-votes", id],
+    queryFn: async () => {
+      const voteScore: any = await api.getVoteStats(id);
+      setQuestionVotes(voteScore.data.score);
+      return voteScore.data;
+    },
+    enabled: !!id && !!data,
+  });
+
+  // Fetch answer votes separately
+  useQuery({
+    queryKey: ["answer-votes", id],
+    queryFn: async () => {
+      if (data?.answers) {
+        const answerVotesMap: Record<string, number> = {};
+        for (const answer of data.answers) {
+          try {
+            const answerVoteScore: any = await api.getVoteStats(undefined, answer.id);
+            answerVotesMap[answer.id] = answerVoteScore.data.score;
+          } catch (error) {
+            answerVotesMap[answer.id] = 0;
+          }
+        }
+        setAnswerVotes(answerVotesMap);
+        return answerVotesMap;
+      }
+      return {};
+    },
+    enabled: !!id && !!data && !!data.answers,
   });
 
   const createCommentMutation = useMutation({
@@ -60,52 +95,108 @@ const QuestionDetail = () => {
     },
   });
 
+  const voteQuestionMutation = useMutation({
+    mutationFn: (value: 1 | -1) => api.vote({ value, questionId: id }),
+    onMutate: (value) => {
+      setQuestionVotes(prev => prev + value);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["question", id] });
+    },
+    onError: (error: any, value) => {
+      setQuestionVotes(prev => prev - value);
+      toast.error(error.message || "Failed to vote");
+    },
+  });
+
+  const voteAnswerMutation = useMutation({
+    mutationFn: ({ answerId, value }: { answerId: string; value: 1 | -1 }) => 
+      api.vote({ value, answerId }),
+    onMutate: ({ answerId, value }) => {
+      setAnswerVotes(prev => ({ ...prev, [answerId]: (prev[answerId] || 0) + value }));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["question", id] });
+    },
+    onError: (error: any, { answerId, value }) => {
+      setAnswerVotes(prev => ({ ...prev, [answerId]: (prev[answerId] || 0) - value }));
+      toast.error(error.message || "Failed to vote");
+    },
+  });
+
+  const handleQuestionVote = (value: 1 | -1) => {
+    voteQuestionMutation.mutate(value);
+  };
+
+  const handleAnswerVote = (answerId: string, value: 1 | -1) => {
+    voteAnswerMutation.mutate({ answerId, value });
+  };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
+      <AnimatedPage className="min-h-screen bg-background">
         <Navbar />
         <main className="pt-20 pb-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center text-muted-foreground">Loading question...</div>
+          <div className="container mx-auto px-6 max-w-[1400px]">
+            <div className="flex gap-6">
+              <Sidebar />
+              <div className="flex-1 min-w-0">
+                <div className="text-center text-muted-foreground">Loading question...</div>
+              </div>
+            </div>
           </div>
         </main>
-        <Footer />
-      </div>
+      </AnimatedPage>
     );
   }
 
   if (isError || !data) {
     return (
-      <div className="min-h-screen bg-background">
+      <AnimatedPage className="min-h-screen bg-background">
         <Navbar />
         <main className="pt-20 pb-16">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-col items-center justify-center gap-4 py-12">
-              <div className="text-center text-destructive text-xl font-semibold">Failed to load question</div>
-              <p className="text-muted-foreground text-center max-w-md">
-                This question might not exist or has been deleted. Please navigate to the Explore page to view available questions.
-              </p>
-              <Button onClick={() => navigate("/explore")} variant="default">
-                Go to Explore
-              </Button>
+          <div className="container mx-auto px-6 max-w-[1400px]">
+            <div className="flex gap-6">
+              <Sidebar />
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col items-center justify-center gap-4 py-12">
+                  <div className="text-center text-destructive text-xl font-semibold">Question Not Found</div>
+                  <p className="text-muted-foreground text-center max-w-md">
+                    This question might not exist, has been deleted, or the database was recently reset.
+                    Please navigate to the Explore page to view available questions.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button onClick={() => navigate("/explore")} variant="default">
+                      Go to Explore
+                    </Button>
+                    <Button onClick={() => navigate(-1)} variant="outline">
+                      Go Back
+                    </Button>
+                  </div>
+                  <div className="mt-4 p-4 bg-muted/50 rounded-lg text-sm text-muted-foreground max-w-md">
+                    <p className="font-semibold mb-2">💡 Tip:</p>
+                    <p>If you just reseeded the database, try clearing your browser cache (Ctrl+Shift+Delete) and refreshing the page.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </main>
-        <Footer />
-      </div>
+      </AnimatedPage>
     );
   }
 
   const question = data;
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       <Navbar />
       <main className="pt-20 pb-16">
-        <div className="container mx-auto px-4 flex gap-8">
-          <Sidebar />
+        <div className="container mx-auto px-6 max-w-[1400px]">
+          <div className="flex gap-6">
+            <Sidebar />
           
-          <div className="flex-1 max-w-4xl">
+            <div className="flex-1 min-w-0 space-y-6">
             {/* Back Button */}
             <Button
               variant="ghost"
@@ -121,12 +212,20 @@ const QuestionDetail = () => {
               <div className="flex gap-4">
                 {/* Voting */}
                 <div className="flex flex-col items-center gap-2 shrink-0">
-                  <button className="p-2 rounded-lg hover:bg-success/20 transition-colors">
-                    <ArrowUp className="w-6 h-6 text-muted-foreground hover:text-success" />
+                  <button 
+                    onClick={() => handleQuestionVote(1)}
+                    disabled={voteQuestionMutation.isPending}
+                    className="p-2 rounded-lg hover:bg-success/20 transition-colors group"
+                  >
+                    <ArrowUp className="w-6 h-6 text-muted-foreground group-hover:text-success transition-colors" />
                   </button>
-                  <span className="text-xl font-semibold">{question.votes?.length || 0}</span>
-                  <button className="p-2 rounded-lg hover:bg-destructive/20 transition-colors">
-                    <ArrowDown className="w-6 h-6 text-muted-foreground hover:text-destructive" />
+                  <span className="text-xl font-semibold">{questionVotes}</span>
+                  <button 
+                    onClick={() => handleQuestionVote(-1)}
+                    disabled={voteQuestionMutation.isPending}
+                    className="p-2 rounded-lg hover:bg-destructive/20 transition-colors group"
+                  >
+                    <ArrowDown className="w-6 h-6 text-muted-foreground group-hover:text-destructive transition-colors" />
                   </button>
                 </div>
 
@@ -243,12 +342,20 @@ const QuestionDetail = () => {
                       <div className="flex gap-4">
                         {/* Voting */}
                         <div className="flex flex-col items-center gap-2 shrink-0">
-                          <button className="p-2 rounded-lg hover:bg-success/20 transition-colors">
-                            <ArrowUp className="w-5 h-5 text-muted-foreground hover:text-success" />
+                          <button 
+                            onClick={() => handleAnswerVote(answer.id, 1)}
+                            disabled={voteAnswerMutation.isPending}
+                            className="p-2 rounded-lg hover:bg-success/20 transition-colors group"
+                          >
+                            <ArrowUp className="w-5 h-5 text-muted-foreground group-hover:text-success transition-colors" />
                           </button>
-                          <span className="text-lg font-semibold">{answer._count?.votes || 0}</span>
-                          <button className="p-2 rounded-lg hover:bg-destructive/20 transition-colors">
-                            <ArrowDown className="w-5 h-5 text-muted-foreground hover:text-destructive" />
+                          <span className="text-lg font-semibold">{answerVotes[answer.id] || 0}</span>
+                          <button 
+                            onClick={() => handleAnswerVote(answer.id, -1)}
+                            disabled={voteAnswerMutation.isPending}
+                            className="p-2 rounded-lg hover:bg-destructive/20 transition-colors group"
+                          >
+                            <ArrowDown className="w-5 h-5 text-muted-foreground group-hover:text-destructive transition-colors" />
                           </button>
                           {answer.isAccepted && (
                             <CheckCircle className="w-6 h-6 text-success mt-2" />
@@ -325,11 +432,11 @@ const QuestionDetail = () => {
                 {createAnswerMutation.isPending ? "Posting..." : "Post Answer"}
               </Button>
             </div>
+            </div>
           </div>
         </div>
       </main>
-      <Footer />
-    </div>
+    </AnimatedPage>
   );
 };
 

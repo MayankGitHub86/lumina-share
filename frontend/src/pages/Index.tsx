@@ -3,10 +3,11 @@ import { Hero } from "@/components/Hero";
 import { StatsSection } from "@/components/StatsSection";
 import { FeaturedSection } from "@/components/FeaturedSection";
 import { Footer } from "@/components/Footer";
+import { AnimatedPage } from "@/components/AnimatedPage";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       <Navbar />
       <main>
         <Hero />
@@ -14,7 +15,7 @@ const Index = () => {
         <FeaturedSection />
       </main>
       <Footer />
-    </div>
+    </AnimatedPage>
   );
 };
 

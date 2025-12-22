@@ -1,41 +1,96 @@
 import { useState } from "react";
-import { Bookmark, Folder, Clock, Trash2 } from "lucide-react";
+import { Bookmark, Folder, Clock, Trash2, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { Sidebar } from "@/components/Sidebar";
 import { ProblemCard } from "@/components/ProblemCard";
 import { Button } from "@/components/ui/button";
+import { CreateCollectionDialog } from "@/components/CreateCollectionDialog";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "@/lib/api";
 import { useAuth } from "@/context/auth";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { AnimatedPage, FadeIn, StaggerContainer, StaggerItem } from "@/components/AnimatedPage";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 const Saved = () => {
   const [activeCollection, setActiveCollection] = useState("all");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch saved questions
-  const { data: savedQuestionsData, isLoading } = useQuery({
-    queryKey: ["saved-questions", user?.id],
+  // Fetch collections
+  const { data: collectionsData } = useQuery({
+    queryKey: ["collections", user?.id],
     queryFn: async () => {
-      if (!user?.id) return { data: [] };
-      const res: any = await api.getSavedQuestions(user.id);
-      return res;
+      const res: any = await api.getUserCollections();
+      return res.data;
     },
     enabled: !!user?.id,
   });
 
-  const savedProblems = savedQuestionsData?.data || [];
+  const userCollections = collectionsData || [];
+
+  // Fetch saved questions or collection questions
+  const { data: questionsData, isLoading } = useQuery({
+    queryKey: ["saved-questions", user?.id, activeCollection],
+    queryFn: async () => {
+      if (!user?.id) return { data: [] };
+      
+      if (activeCollection === "all") {
+        const res: any = await api.getSavedQuestions(user.id);
+        return res;
+      } else {
+        const res: any = await api.getCollectionQuestions(activeCollection);
+        return res;
+      }
+    },
+    enabled: !!user?.id,
+  });
+
+  const savedProblems = questionsData?.data || [];
+
+  // Create collection mutation
+  const createCollectionMutation = useMutation({
+    mutationFn: (data: { name: string; description?: string }) => 
+      api.createCollection(data),
+    onSuccess: () => {
+      toast.success("Collection created successfully!");
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+      setIsCreateDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to create collection");
+    },
+  });
+
+  // Delete collection mutation
+  const deleteCollectionMutation = useMutation({
+    mutationFn: (collectionId: string) => api.deleteCollection(collectionId),
+    onSuccess: () => {
+      toast.success("Collection deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ["collections"] });
+      if (activeCollection !== "all") {
+        setActiveCollection("all");
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete collection");
+    },
+  });
 
   // Unsave mutation
   const unsaveMutation = useMutation({
     mutationFn: (questionId: string) => api.unsaveQuestion(questionId),
     onSuccess: () => {
+      toast.success("Question removed from saved");
       queryClient.invalidateQueries({ queryKey: ["saved-questions"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to remove question");
     },
   });
 
@@ -43,65 +98,101 @@ const Saved = () => {
     unsaveMutation.mutate(questionId);
   };
 
+  const handleCreateCollection = (data: { name: string; description?: string }) => {
+    createCollectionMutation.mutate(data);
+  };
+
+  const handleDeleteCollection = (collectionId: string) => {
+    if (confirm("Are you sure you want to delete this collection? Questions will not be deleted.")) {
+      deleteCollectionMutation.mutate(collectionId);
+    }
+  };
+
   const collections = [
     { id: "all", label: "All Saved", count: savedProblems.length, icon: Bookmark },
+    ...userCollections.map((col: any) => ({
+      id: col.id,
+      label: col.name,
+      count: col._count?.questions || 0,
+      icon: Folder,
+      description: col.description,
+    })),
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <AnimatedPage className="min-h-screen bg-background">
       <Navbar />
       <main className="pt-20 pb-16">
-        <div className="container mx-auto px-4">
-          <div className="flex gap-8">
+        <div className="container mx-auto px-6 max-w-[1400px]">
+          <div className="flex gap-6">
             <Sidebar />
             
-            <div className="flex-1">
+            <div className="flex-1 min-w-0 space-y-6">
               {/* Header */}
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground mb-2">Saved Items</h1>
-                  <p className="text-muted-foreground">Your bookmarked problems and resources</p>
+              <FadeIn>
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <h1 className="text-3xl font-bold text-foreground mb-2">Saved Items</h1>
+                    <p className="text-muted-foreground">Your bookmarked problems and resources</p>
+                  </div>
+                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Collection
+                  </Button>
                 </div>
-                <Button variant="outline">
-                  <Folder className="w-4 h-4 mr-2" />
-                  New Collection
-                </Button>
-              </div>
+              </FadeIn>
 
               {/* Collections */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                {collections.map((collection) => {
-                  const Icon = collection.icon;
-                  const isActive = activeCollection === collection.id;
-                  return (
-                    <button
-                      key={collection.id}
-                      onClick={() => setActiveCollection(collection.id)}
-                      className={cn(
-                        "glass rounded-2xl p-4 text-left transition-all duration-200 group",
-                        isActive && "ring-2 ring-primary/50 bg-primary/5"
-                      )}
-                    >
-                      <div className={cn(
-                        "w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-colors",
-                        isActive ? "bg-primary/20" : "bg-muted/50 group-hover:bg-muted"
-                      )}>
-                        <Icon className={cn(
-                          "w-5 h-5",
-                          isActive ? "text-primary" : "text-muted-foreground"
-                        )} />
-                      </div>
-                      <h3 className={cn(
-                        "font-medium mb-1",
-                        isActive ? "text-primary" : "text-foreground"
-                      )}>
-                        {collection.label}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">{collection.count} items</p>
-                    </button>
-                  );
-                })}
-              </div>
+              <FadeIn delay={0.1}>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                  {collections.map((collection) => {
+                    const Icon = collection.icon;
+                    const isActive = activeCollection === collection.id;
+                    return (
+                      <motion.button
+                        key={collection.id}
+                        onClick={() => setActiveCollection(collection.id)}
+                        className={cn(
+                          "glass rounded-2xl p-4 text-left transition-all duration-200 group relative",
+                          isActive && "ring-2 ring-primary/50 bg-primary/5"
+                        )}
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <div className={cn(
+                          "w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-colors",
+                          isActive ? "bg-primary/20" : "bg-muted/50 group-hover:bg-muted"
+                        )}>
+                          <Icon className={cn(
+                            "w-5 h-5",
+                            isActive ? "text-primary" : "text-muted-foreground"
+                          )} />
+                        </div>
+                        <h3 className={cn(
+                          "font-medium mb-1",
+                          isActive ? "text-primary" : "text-foreground"
+                        )}>
+                          {collection.label}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">{collection.count} items</p>
+                        
+                        {/* Delete button for custom collections */}
+                        {collection.id !== "all" && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteCollection(collection.id);
+                            }}
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-lg hover:bg-destructive/20"
+                          >
+                            <Trash2 className="w-3 h-3 text-destructive" />
+                          </button>
+                        )}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </FadeIn>
 
               {/* Saved Problems */}
               {isLoading ? (
@@ -158,8 +249,15 @@ const Saved = () => {
           </div>
         </div>
       </main>
-      <Footer />
-    </div>
+
+      {/* Create Collection Dialog */}
+      <CreateCollectionDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSubmit={handleCreateCollection}
+        isLoading={createCollectionMutation.isPending}
+      />
+    </AnimatedPage>
   );
 };
 

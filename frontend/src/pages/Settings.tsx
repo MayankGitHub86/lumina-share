@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { User, Bell, Shield, Trash2, Key, Save, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import { Sidebar } from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/context/auth";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import api from "@/lib/api";
+import { AnimatedPage, FadeIn } from "@/components/AnimatedPage";
 
 const settingsTabs = [
   { id: "profile", label: "Profile", icon: User },
@@ -236,17 +236,23 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <AnimatedPage className="min-h-screen bg-background">
       <Navbar />
       <main className="pt-20 pb-16">
-        <div className="container mx-auto px-4 max-w-5xl">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
-            <p className="text-muted-foreground">Manage your account preferences</p>
-          </div>
+        <div className="container mx-auto px-6 max-w-[1400px]">
+          <div className="flex gap-6">
+            <Sidebar />
+            
+            <div className="flex-1 min-w-0 space-y-6">
+              {/* Header */}
+              <FadeIn>
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground mb-2">Settings</h1>
+                  <p className="text-muted-foreground">Manage your account preferences</p>
+                </div>
+              </FadeIn>
 
-          <div className="flex flex-col lg:flex-row gap-8">
+              <div className="flex flex-col lg:flex-row gap-8">
             {/* Sidebar */}
             <div className="lg:w-64 shrink-0">
               <Card>
@@ -593,10 +599,11 @@ const Settings = () => {
               )}
             </div>
           </div>
+            </div>
+          </div>
         </div>
       </main>
-      <Footer />
-    </div>
+    </AnimatedPage>
   );
 };
 

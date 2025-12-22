@@ -1,121 +1,159 @@
-# SolveHub Backend
+# SolveHub Backend API
 
-RESTful API backend for SolveHub community platform built with Express.js, TypeScript, and Prisma.
+A robust Node.js + Express.js REST API for the SolveHub community platform.
 
-## Features
+## 🚀 Features
 
-- 🔐 JWT Authentication
-- 👥 User Management & Profiles
-- ❓ Questions & Answers
-- 🏷️ Tag System
-- 👍 Voting System
-- 💬 Comments
-- 🏆 Leaderboard & Points
-- 🎖️ Badges System
-- 💾 SQLite Database (easily switchable to PostgreSQL/MySQL)
+- **RESTful API** - Clean and intuitive API design
+- **MongoDB + Prisma** - Type-safe database access
+- **JWT Authentication** - Secure user authentication
+- **OAuth Support** - Google, Microsoft, GitHub login
+- **Input Validation** - Express-validator for request validation
+- **Error Handling** - Centralized error handling with custom error classes
+- **Security** - Helmet.js for security headers
+- **Compression** - Response compression for better performance
+- **Logging** - Custom logger with colored output
+- **CORS** - Configured for cross-origin requests
 
-## Tech Stack
+## 📁 Project Structure
 
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Language**: TypeScript
-- **Database**: SQLite (Prisma ORM)
-- **Authentication**: JWT
-- **Validation**: express-validator
+```
+backend/
+├── src/
+│   ├── config/           # Configuration files
+│   │   └── index.js      # Centralized config
+│   ├── controllers/      # Route controllers
+│   │   ├── auth.controller.js
+│   │   ├── question.controller.js
+│   │   ├── answer.controller.js
+│   │   ├── user.controller.js
+│   │   ├── tag.controller.js
+│   │   ├── vote.controller.js
+│   │   ├── comment.controller.js
+│   │   └── settings.controller.js
+│   ├── middleware/       # Custom middleware
+│   │   ├── auth.js       # Authentication middleware
+│   │   ├── errorHandler.js
+│   │   ├── requestLogger.js
+│   │   └── validate.js   # Validation middleware
+│   ├── routes/           # API routes
+│   │   ├── auth.routes.js
+│   │   ├── oauth.routes.js
+│   │   ├── question.routes.js
+│   │   ├── answer.routes.js
+│   │   ├── user.routes.js
+│   │   ├── tag.routes.js
+│   │   ├── vote.routes.js
+│   │   ├── comment.routes.js
+│   │   ├── notification.routes.js
+│   │   └── settings.routes.js
+│   ├── services/         # Business logic
+│   │   └── notification.service.js
+│   ├── utils/            # Utility functions
+│   │   ├── ApiError.js   # Custom error class
+│   │   ├── ApiResponse.js # Standardized responses
+│   │   ├── asyncHandler.js
+│   │   └── logger.js     # Custom logger
+│   ├── lib/              # External libraries
+│   │   └── prisma.js     # Prisma client
+│   └── server.js         # Express app setup
+├── prisma/
+│   ├── schema.prisma     # Database schema
+│   └── seed.js           # Database seeding
+├── .env                  # Environment variables
+├── .env.example          # Example environment variables
+└── package.json
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ or npm
-
-### Installation
-
-1. Navigate to the backend directory:
-```bash
-cd backend
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+## 🛠️ Installation
 
-3. Set up environment variables:
-```bash
-cp .env.example .env
-```
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-Edit `.env` and update the values:
-```env
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
-PORT=3001
-NODE_ENV=development
-FRONTEND_URL=http://localhost:8080
-```
+2. **Set up environment variables:**
+   ```bash
+   cp .env.example .env
+   ```
+   
+   Edit `.env` with your configuration:
+   ```env
+   DATABASE_URL="your-mongodb-connection-string"
+   JWT_SECRET="your-secret-key"
+   PORT=3001
+   NODE_ENV=development
+   FRONTEND_URL=http://localhost:8080
+   ```
 
-4. Generate Prisma client and run migrations:
-```bash
-npm run prisma:generate
-npm run prisma:migrate
-```
+3. **Generate Prisma Client:**
+   ```bash
+   npm run prisma:generate
+   ```
 
-5. (Optional) Seed the database with sample data:
-```bash
-npx tsx prisma/seed.ts
-```
+4. **Run database migrations:**
+   ```bash
+   npm run prisma:migrate
+   ```
 
-### Development
+5. **Seed the database (optional):**
+   ```bash
+   npm run prisma:seed
+   ```
 
-Start the development server with hot reload:
+## 🚀 Running the Server
+
+### Development mode (with auto-reload):
 ```bash
 npm run dev
 ```
 
-The API will be available at `http://localhost:3001`
-
-### Production
-
-Build the project:
-```bash
-npm run build
-```
-
-Start the production server:
+### Production mode:
 ```bash
 npm start
 ```
 
-## API Endpoints
+### Test the API:
+```bash
+npm test
+```
+
+The server will start on `http://localhost:3001`
+
+## 📚 API Endpoints
 
 ### Authentication
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login user
+- `POST /api/auth/oauth/google` - Google OAuth
+- `POST /api/auth/oauth/microsoft` - Microsoft OAuth
+- `POST /api/auth/oauth/github` - GitHub OAuth
 
 ### Users
-- `GET /api/users` - Get all users (with pagination)
-- `GET /api/users/leaderboard` - Get leaderboard
+- `GET /api/users` - Get all users
 - `GET /api/users/:id` - Get user by ID
 - `GET /api/users/:id/stats` - Get user statistics
-- `PUT /api/users/:id` - Update user (authenticated)
+- `PUT /api/users/:id` - Update user (auth required)
+- `GET /api/users/leaderboard` - Get leaderboard
+- `GET /api/users/:id/saved` - Get saved questions (auth required)
 
 ### Questions
-- `GET /api/questions` - Get all questions (with filters)
+- `GET /api/questions` - Get all questions
 - `GET /api/questions/trending` - Get trending questions
 - `GET /api/questions/:id` - Get question by ID
-- `POST /api/questions` - Create question (authenticated)
-- `PUT /api/questions/:id` - Update question (authenticated)
-- `DELETE /api/questions/:id` - Delete question (authenticated)
-- `POST /api/questions/:id/save` - Save question (authenticated)
-- `DELETE /api/questions/:id/save` - Unsave question (authenticated)
+- `POST /api/questions` - Create question (auth required)
+- `PUT /api/questions/:id` - Update question (auth required)
+- `DELETE /api/questions/:id` - Delete question (auth required)
+- `POST /api/questions/:id/save` - Save question (auth required)
+- `DELETE /api/questions/:id/save` - Unsave question (auth required)
 
 ### Answers
-- `GET /api/answers/question/:questionId` - Get answers for a question
-- `POST /api/answers` - Create answer (authenticated)
-- `PUT /api/answers/:id` - Update answer (authenticated)
-- `DELETE /api/answers/:id` - Delete answer (authenticated)
-- `POST /api/answers/:id/accept` - Accept answer (authenticated)
+- `GET /api/answers/question/:questionId` - Get answers for question
+- `POST /api/answers` - Create answer (auth required)
+- `PUT /api/answers/:id` - Update answer (auth required)
+- `DELETE /api/answers/:id` - Delete answer (auth required)
+- `POST /api/answers/:id/accept` - Accept answer (auth required)
 
 ### Tags
 - `GET /api/tags` - Get all tags
@@ -123,56 +161,147 @@ npm start
 - `GET /api/tags/:id/questions` - Get questions by tag
 
 ### Votes
-- `POST /api/votes` - Vote on question/answer (authenticated)
+- `POST /api/votes` - Vote on question/answer (auth required)
 
 ### Comments
-- `POST /api/comments` - Create comment (authenticated)
-- `PUT /api/comments/:id` - Update comment (authenticated)
-- `DELETE /api/comments/:id` - Delete comment (authenticated)
+- `POST /api/comments` - Create comment (auth required)
+- `PUT /api/comments/:id` - Update comment (auth required)
+- `DELETE /api/comments/:id` - Delete comment (auth required)
 
-## Database Schema
+### Notifications
+- `GET /api/notifications` - Get user notifications (auth required)
+- `PUT /api/notifications/:id/read` - Mark notification as read (auth required)
 
-The database includes the following models:
-- **User**: User accounts and profiles
-- **Question**: Questions posted by users
-- **Answer**: Answers to questions
-- **Tag**: Tags for categorizing questions
-- **Vote**: Upvotes/downvotes on questions and answers
-- **Comment**: Comments on questions and answers
-- **Badge**: Achievement badges
-- **UserBadge**: Badges earned by users
-- **SavedQuestion**: Questions saved by users
+### Settings
+- `GET /api/settings` - Get user settings (auth required)
+- `PUT /api/settings` - Update user settings (auth required)
 
-## Points System
+## 🔒 Authentication
 
-- Answer a question: +10 points
-- Get your answer accepted: +25 points
-- Get an upvote: +5 points
-- Get a downvote: -5 points
+The API uses JWT (JSON Web Tokens) for authentication. Include the token in the Authorization header:
 
-## Prisma Commands
-
-```bash
-# Generate Prisma Client
-npm run prisma:generate
-
-# Run migrations
-npm run prisma:migrate
-
-# Open Prisma Studio (database GUI)
-npm run prisma:studio
+```
+Authorization: Bearer <your-jwt-token>
 ```
 
-## Environment Variables
+## 📝 Response Format
+
+### Success Response
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Success",
+  "data": { ... }
+}
+```
+
+### Error Response
+```json
+{
+  "success": false,
+  "statusCode": 400,
+  "message": "Error message",
+  "errors": []
+}
+```
+
+## 🧪 Testing
+
+Test the API using the provided test script:
+
+```bash
+node test-api.js
+```
+
+Or use tools like:
+- Postman
+- Insomnia
+- cURL
+- Thunder Client (VS Code extension)
+
+## 🔧 Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| DATABASE_URL | Database connection string | file:./dev.db |
-| JWT_SECRET | Secret key for JWT tokens | (required) |
-| PORT | Server port | 3001 |
-| NODE_ENV | Environment mode | development |
-| FRONTEND_URL | Frontend URL for CORS | http://localhost:8080 |
+| `DATABASE_URL` | MongoDB connection string | Required |
+| `JWT_SECRET` | Secret key for JWT | Required |
+| `PORT` | Server port | 3001 |
+| `NODE_ENV` | Environment (development/production) | development |
+| `FRONTEND_URL` | Frontend URL for CORS | http://localhost:8080 |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID | Optional |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | Optional |
+| `MICROSOFT_CLIENT_ID` | Microsoft OAuth client ID | Optional |
+| `MICROSOFT_CLIENT_SECRET` | Microsoft OAuth client secret | Optional |
+| `GITHUB_CLIENT_ID` | GitHub OAuth client ID | Optional |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth client secret | Optional |
 
-## License
+## 🛡️ Security Features
+
+- **Helmet.js** - Sets various HTTP headers for security
+- **CORS** - Configured to allow only specific origins
+- **JWT** - Secure token-based authentication
+- **Input Validation** - All inputs are validated
+- **Error Handling** - Sensitive information is not exposed in production
+- **Rate Limiting** - (Can be added with express-rate-limit)
+
+## 📊 Database Schema
+
+The application uses MongoDB with Prisma ORM. Key models:
+
+- **User** - User accounts and profiles
+- **Question** - Community questions
+- **Answer** - Answers to questions
+- **Tag** - Question tags/categories
+- **Vote** - Upvotes/downvotes
+- **Comment** - Comments on questions/answers
+- **Badge** - User achievements
+- **SavedQuestion** - Bookmarked questions
+
+## 🚀 Deployment
+
+### Vercel (Serverless)
+The app is configured for Vercel deployment. The `vercel.json` file is already set up.
+
+### Traditional Hosting
+For traditional hosting (VPS, AWS EC2, etc.):
+
+1. Set `NODE_ENV=production`
+2. Run `npm start`
+3. Use PM2 for process management:
+   ```bash
+   npm install -g pm2
+   pm2 start src/server.js --name solvehub-api
+   ```
+
+## 📈 Performance Tips
+
+- Use MongoDB indexes for frequently queried fields
+- Enable compression (already configured)
+- Use caching for frequently accessed data (Redis recommended)
+- Implement rate limiting for public endpoints
+- Use CDN for static assets
+
+## 🐛 Debugging
+
+Enable debug logs by setting:
+```env
+LOG_LEVEL=debug
+NODE_ENV=development
+```
+
+## 📄 License
 
 MIT
+
+## 👥 Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## 📞 Support
+
+For issues and questions, please open an issue on GitHub.

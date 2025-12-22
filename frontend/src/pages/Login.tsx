@@ -9,6 +9,8 @@ import { handleGoogleAuth, handleMicrosoftAuth, handleGitHubAuth } from "@/lib/o
 import { loadGoogleScript, initializeGoogleButton } from "@/lib/google-auth";
 import { initializeMicrosoftAuth } from "@/lib/microsoft-auth";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { FadeIn, SlideIn } from "@/components/AnimatedPage";
 
 const quotes = [
   "Knowledge grows when it's shared.",
@@ -90,9 +92,12 @@ const Login = () => {
 
     try {
       await login(email, password);
+      toast.success("Login successful! Welcome back.");
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err?.message || "Something went wrong");
+      const errorMessage = err?.message || "Something went wrong";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -268,8 +273,14 @@ const Login = () => {
 
         {/* Auth side */}
         <div className="flex items-center justify-center px-6 py-10">
-          <div className="w-full max-w-xl space-y-8">
-            <div className="flex items-center justify-between">
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-xl space-y-8"
+          >
+            <FadeIn delay={0.2}>
+              <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-primary font-semibold">SolveHub</p>
                 <h2 className="text-2xl font-bold">Welcome back</h2>
@@ -279,8 +290,10 @@ const Login = () => {
                 Trusted by builders
               </div>
             </div>
+            </FadeIn>
 
-            <div className="glass rounded-2xl p-8 shadow-xl border border-white/10">
+            <FadeIn delay={0.3}>
+              <div className="glass rounded-2xl p-8 shadow-xl border border-white/10">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-semibold">Log In</h3>
                 <button 
@@ -373,7 +386,8 @@ const Login = () => {
                 </p>
               </div>
             </div>
-          </div>
+            </FadeIn>
+          </motion.div>
         </div>
       </div>
     </div>

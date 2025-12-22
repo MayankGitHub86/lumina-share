@@ -31,7 +31,7 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -145,7 +145,9 @@ export function Navbar() {
               <NotificationPanel />
 
               {/* Auth - Conditional rendering */}
-              {user ? (
+              {loading ? (
+                <div className="h-10 w-10 rounded-full bg-muted/50 animate-pulse" />
+              ) : user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -233,7 +235,9 @@ export function Navbar() {
               );
             })}
             <div className="pt-2">
-              {user ? (
+              {loading ? (
+                <div className="h-20 rounded-xl bg-muted/50 animate-pulse" />
+              ) : user ? (
                 <>
                   <div className="mb-3 p-3 rounded-xl bg-muted/50">
                     <div className="flex items-center gap-3">

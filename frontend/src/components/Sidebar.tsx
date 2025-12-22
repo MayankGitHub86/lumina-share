@@ -7,9 +7,13 @@ import {
   Bookmark, 
   TrendingUp,
   Award,
-  Settings
+  Settings,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const mainLinks = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -35,12 +39,25 @@ const popularTags = [
 
 export function Sidebar() {
   const location = useLocation();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <aside className="hidden lg:block w-64 shrink-0">
+    <motion.aside 
+      className="hidden lg:block shrink-0"
+      animate={{ width: isCollapsed ? "80px" : "256px" }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+    >
       <div className="sticky top-24 space-y-6">
         {/* Main Navigation */}
-        <nav className="glass rounded-2xl p-4">
+        <nav className="glass rounded-2xl p-4 relative">
+          {/* Toggle Button */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="absolute -right-3 top-4 w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:scale-110 transition-transform z-10"
+          >
+            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+
           <ul className="space-y-1">
             {mainLinks.map((link) => {
               const Icon = link.icon;
@@ -53,11 +70,24 @@ export function Sidebar() {
                       "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                       isActive
                         ? "bg-primary/10 text-primary shadow-glow-sm"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                      isCollapsed && "justify-center"
                     )}
+                    title={isCollapsed ? link.label : undefined}
                   >
-                    <Icon className="w-5 h-5" />
-                    {link.label}
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <AnimatePresence>
+                      {!isCollapsed && (
+                        <motion.span
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: "auto" }}
+                          exit={{ opacity: 0, width: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {link.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </Link>
                 </li>
               );
@@ -78,11 +108,24 @@ export function Sidebar() {
                       "flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                       isActive
                         ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+                      isCollapsed && "justify-center"
                     )}
+                    title={isCollapsed ? link.label : undefined}
                   >
-                    <Icon className="w-5 h-5" />
-                    {link.label}
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <AnimatePresence>
+                      {!isCollapsed && (
+                        <motion.span
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: "auto" }}
+                          exit={{ opacity: 0, width: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {link.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </Link>
                 </li>
               );
@@ -90,31 +133,41 @@ export function Sidebar() {
           </ul>
         </nav>
 
-        {/* Popular Tags */}
-        <div className="glass rounded-2xl p-4">
-          <h3 className="text-sm font-semibold text-foreground mb-3 px-2">
-            Popular Tags
-          </h3>
-          <ul className="space-y-1">
-            {popularTags.map((tag) => (
-              <li key={tag.name}>
-                <Link
-                  to={`/tags/${tag.name.toLowerCase()}`}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-primary" />
-                    {tag.name}
-                  </span>
-                  <span className="text-xs bg-muted rounded-full px-2 py-0.5">
-                    {tag.count.toLocaleString()}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {/* Popular Tags - Hide when collapsed */}
+        <AnimatePresence>
+          {!isCollapsed && (
+            <motion.div 
+              className="glass rounded-2xl p-4"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <h3 className="text-sm font-semibold text-foreground mb-3 px-2">
+                Popular Tags
+              </h3>
+              <ul className="space-y-1">
+                {popularTags.map((tag) => (
+                  <li key={tag.name}>
+                    <Link
+                      to={`/explore?category=${tag.name}`}
+                      className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-primary" />
+                        {tag.name}
+                      </span>
+                      <span className="text-xs bg-muted rounded-full px-2 py-0.5">
+                        {tag.count.toLocaleString()}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </aside>
+    </motion.aside>
   );
 }

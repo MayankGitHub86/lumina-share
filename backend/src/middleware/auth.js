@@ -1,25 +1,69 @@
 const jwt = require('jsonwebtoken');
-const { AppError } = require('./errorHandler');
+const config = require('../config');
+const ApiError = require('../utils/ApiError');
+const asyncHandler = require('../utils/asyncHandler');
 
-const authenticate = async (
-  req,
-  res,
-  next
-) => {
+/**
+ * Authentication middleware
+ * Verifies JWT token and attaches user ID to request
+ */
+const authenticate = asyncHandler(async (req, res, next) => {
+  // Get token from header
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    throw ApiError.unauthorized('Authentication token is required');
+  }
+
+  const token = authHeader.split(' ')[1];
+
+  if (!token) {
+    throw ApiError.unauthorized('Authentication token is required');
+  }
+
   try {
-    const authHeader = req.headers.authorization;
-    const token = authHeader ? authHeader.split(' ')[1] : null;
-
-    if (!token) {
-      throw new AppError('Authentication token is required', 401);
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // Verify token
+    const decoded = jwt.verify(token, config.jwtSecret);
+    
+    // Attach user ID to request
     req.userId = decoded.userId;
+    req.user = decoded; // Attach full decoded token if needed
+    
     next();
   } catch (error) {
-    next(new AppError('Invalid or expired token', 401));
+    if (error.name === 'TokenExpiredError') {
+      throw ApiError.unauthorized('Token has expired');
+    }
+    if (error.name === 'JsonWebTokenError') {
+      throw ApiError.unauthorized('Invalid token');
+    }
+    throw ApiError.unauthorized('Authentication failed');
   }
-};
+});
 
-module.exports = { authenticate };
+/**
+ * Optional authentication middleware
+ * Attaches user ID if token is present, but doesn't require it
+ */
+const optionalAuth = asyncHandler(async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    
+    try {
+      const decoded = jwt.verify(token, config.jwtSecret);
+      req.userId = decoded.userId;
+      req.user = decoded;
+    } catch (error) {
+      // Silently fail for optional auth
+    }
+  }
+  
+  next();
+});
+
+module.exports = {
+  authenticate,
+  optionalAuth,
+};

@@ -15,8 +15,13 @@ const getAllQuestions = async (
     const skip = (Number(page) - 1) * Number(limit);
 
     let orderBy = { createdAt: 'desc' };
-    if (sort === 'votes') orderBy = { votes: { _count: 'desc' } };
-    if (sort === 'views') orderBy = { views: 'desc' };
+    // For votes and views, we'll sort after fetching since we calculate votes dynamically
+    const sortField = sort;
+    if (sort === 'recent') {
+      orderBy = { createdAt: 'desc' };
+    } else if (sort === 'views') {
+      orderBy = { views: 'desc' };
+    }
 
     const where = {};
     
@@ -69,18 +74,31 @@ const getAllQuestions = async (
       prisma.question.count({ where })
     ]);
 
-    const formattedQuestions = questions.map(q => ({
-      id: q.id,
-      title: q.title,
-      preview: q.preview,
-      author: q.author,
-      tags: q.tags.map(t => t.tag.name),
-      votes: q._count.votes,
-      answers: q._count.answers,
-      views: q.views,
-      isSolved: q.isSolved,
-      createdAt: q.createdAt
+    const formattedQuestions = await Promise.all(questions.map(async q => {
+      // Calculate actual vote score (upvotes - downvotes)
+      const voteScore = await prisma.vote.aggregate({
+        where: { questionId: q.id },
+        _sum: { value: true }
+      });
+      
+      return {
+        id: q.id,
+        title: q.title,
+        preview: q.preview,
+        author: q.author,
+        tags: q.tags.map(t => t.tag.name),
+        votes: voteScore._sum.value || 0,
+        answers: q._count.answers,
+        views: q.views,
+        isSolved: q.isSolved,
+        createdAt: q.createdAt
+      };
     }));
+
+    // Sort by votes if requested (after calculating vote scores)
+    if (sortField === 'votes') {
+      formattedQuestions.sort((a, b) => b.votes - a.votes);
+    }
 
     res.json({
       success: true,
@@ -160,17 +178,25 @@ const getTrendingQuestions = async (
       }
     });
 
-    const formattedQuestions = questions.map(q => ({
-      id: q.id,
-      title: q.title,
-      preview: q.preview,
-      author: q.author,
-      tags: q.tags.map(t => t.tag.name),
-      votes: q._count.votes,
-      answers: q._count.answers,
-      views: q.views,
-      isSolved: q.isSolved,
-      createdAt: q.createdAt
+    const formattedQuestions = await Promise.all(questions.map(async q => {
+      // Calculate actual vote score (upvotes - downvotes)
+      const voteScore = await prisma.vote.aggregate({
+        where: { questionId: q.id },
+        _sum: { value: true }
+      });
+      
+      return {
+        id: q.id,
+        title: q.title,
+        preview: q.preview,
+        author: q.author,
+        tags: q.tags.map(t => t.tag.name),
+        votes: voteScore._sum.value || 0,
+        answers: q._count.answers,
+        views: q.views,
+        isSolved: q.isSolved,
+        createdAt: q.createdAt
+      };
     }));
 
     res.json({
@@ -223,15 +249,31 @@ const getQuestionById = async (
                 points: true
               }
             },
+            comments: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    username: true,
+                    avatar: true
+                  }
+                }
+              },
+              orderBy: {
+                createdAt: 'asc'
+              }
+            },
             _count: {
               select: {
                 votes: true
               }
             }
           },
-          orderBy: {
-            isAccepted: 'desc'
-          }
+          orderBy: [
+            { isAccepted: 'desc' },
+            { createdAt: 'desc' }
+          ]
         },
         votes: true,
         comments: {
@@ -244,6 +286,9 @@ const getQuestionById = async (
                 avatar: true
               }
             }
+          },
+          orderBy: {
+            createdAt: 'asc'
           }
         }
       }
@@ -253,17 +298,18 @@ const getQuestionById = async (
       throw new AppError('Question not found', 404);
     }
 
-    // Increment view count
-    await prisma.question.update({
+    // Increment view count (don't await to avoid slowing down response)
+    prisma.question.update({
       where: { id },
       data: { views: { increment: 1 } }
-    });
+    }).catch(err => console.error('Failed to increment views:', err));
 
     res.json({
       success: true,
       data: question
     });
   } catch (error) {
+    console.error('Error in getQuestionById:', error);
     next(error);
   }
 };

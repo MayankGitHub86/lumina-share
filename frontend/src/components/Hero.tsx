@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { ArrowRight, LogIn, UserPlus, Zap, Users, MessageCircle, Award } from "lucide-react";
+import { ArrowRight, LogIn, UserPlus, Zap, Users, MessageCircle, Award, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/auth";
 
 const stats = [
   { label: "Active Users", value: "50K+", icon: Users },
@@ -20,6 +21,7 @@ const backgroundImages = [
 
 export function Hero() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { user } = useAuth();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -91,24 +93,43 @@ export function Hero() {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center lg:items-start gap-4">
-              <Link to="/signup" className="w-full sm:w-auto">
-                <Button variant="hero" size="xl" className="group w-full">
-                  Join Free
-                  <UserPlus className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </Link>
-              <Link to="/login" className="w-full sm:w-auto">
-                <Button variant="outline" size="xl" className="w-full">
-                  Log In
-                  <LogIn className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Link to="/explore" className="w-full sm:w-auto">
-                <Button variant="ghost" size="xl" className="w-full">
-                  Explore Problems
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
+              {user ? (
+                <>
+                  <Link to="/dashboard" className="w-full sm:w-auto">
+                    <Button variant="hero" size="xl" className="group w-full">
+                      Go to Dashboard
+                      <LayoutDashboard className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                  <Link to="/explore" className="w-full sm:w-auto">
+                    <Button variant="outline" size="xl" className="w-full">
+                      Explore Problems
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/signup" className="w-full sm:w-auto">
+                    <Button variant="hero" size="xl" className="group w-full">
+                      Join Free
+                      <UserPlus className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                  <Link to="/login" className="w-full sm:w-auto">
+                    <Button variant="outline" size="xl" className="w-full">
+                      Log In
+                      <LogIn className="w-5 h-5 ml-2" />
+                    </Button>
+                  </Link>
+                  <Link to="/explore" className="w-full sm:w-auto">
+                    <Button variant="ghost" size="xl" className="w-full">
+                      Explore Problems
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 

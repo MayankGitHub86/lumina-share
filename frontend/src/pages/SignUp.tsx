@@ -10,6 +10,8 @@ import { handleGoogleAuth, handleMicrosoftAuth, handleGitHubAuth } from "@/lib/o
 import { loadGoogleScript } from "@/lib/google-auth";
 import { initializeMicrosoftAuth } from "@/lib/microsoft-auth";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { FadeIn } from "@/components/AnimatedPage";
 
 const quotes = [
   "Knowledge grows when it's shared.",
@@ -100,9 +102,12 @@ const SignUp = () => {
       }
       await api.register({ email, username, name, password });
       await login(email, password);
+      toast.success("Account created successfully! Welcome to SolveHub.");
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err?.message || "Something went wrong");
+      const errorMessage = err?.message || "Something went wrong";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -278,21 +283,31 @@ const SignUp = () => {
 
         {/* Signup side */}
         <div className="flex items-center justify-center px-6 py-10">
-          <div className="w-full max-w-xl space-y-8">
-            <button 
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="w-full max-w-xl space-y-8"
+          >
+            <FadeIn delay={0.2}>
+              <button 
               onClick={() => navigate(-1)}
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm">Go back</span>
             </button>
+            </FadeIn>
 
+            <FadeIn delay={0.25}>
             <div>
               <p className="text-sm text-primary font-semibold">SolveHub</p>
               <h2 className="text-2xl font-bold">Join the community</h2>
               <p className="text-sm text-muted-foreground">Create your account and start learning, sharing, and growing.</p>
             </div>
+            </FadeIn>
 
+            <FadeIn delay={0.3}>
             <div className="glass rounded-2xl p-8 shadow-xl border border-white/10">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
                 <Button
@@ -412,7 +427,8 @@ const SignUp = () => {
                 </p>
               </div>
             </div>
-          </div>
+            </FadeIn>
+          </motion.div>
         </div>
       </div>
     </div>

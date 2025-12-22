@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+        .status {
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success {
+            background: #10b981;
+        }
+        .error {
+            background: #ef4444;
+        }
+        .info {
+            background: #3b82f6;
+        }
+        pre {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 SolveHub API Test</h1>
+    
+    <button onclick="testAPI()">Test API Connection</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_URL = 'http://localhost:3001/api';
+        
+        async function testAPI() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<div class="status info">Testing API...</div>';
+            
+            try {
+                // Test 1: Health check
+                const healthRes = await fetch(`${API_URL}/health`);
+                const healthData = await healthRes.json();
+                
+                results.innerHTML += `
+                    <div class="status success">
+                        <h3>✅ Health Check</h3>
+                        <pre>${JSON.stringify(healthData, null, 2)}</pre>
+                    </div>
+                `;
+                
+                // Test 2: Get questions
+                const questionsRes = await fetch(`${API_URL}/questions`);
+                const questionsData = await questionsRes.json();
+                
+                const questionCount = questionsData.data?.questions?.length || 0;
+                
+                results.innerHTML += `
+                    <div class="status ${questionCount > 0 ? 'success' : 'error'}">
+                        <h3>${questionCount > 0 ? '✅' : '❌'} Questions Endpoint</h3>
+                        <p>Found ${questionCount} questions</p>
+                        <pre>${JSON.stringify(questionsData.data?.pagination, null, 2)}</pre>
+                        ${questionCount > 0 ? `
+                            <h4>First Question:</h4>
+                            <pre>${JSON.stringify(questionsData.data.questions[0], null, 2)}</pre>
+                        ` : ''}
+                    </div>
+                `;
+                
+                // Test 3: Get tags
+                const tagsRes = await fetch(`${API_URL}/tags`);
+                const tagsData = await tagsRes.json();
+                
+                results.innerHTML += `
+                    <div class="status success">
+                        <h3>✅ Tags Endpoint</h3>
+                        <p>Found ${tagsData.data?.length || 0} tags</p>
+                        <pre>${JSON.stringify(tagsData.data?.slice(0, 5), null, 2)}</pre>
+                    </div>
+                `;
+                
+                results.innerHTML += `
+                    <div class="status success">
+                        <h3>🎉 All Tests Passed!</h3>
+                        <p>The API is working correctly. If the frontend still shows no questions:</p>
+                        <ol>
+                            <li>Clear browser cache (Ctrl+Shift+Delete)</li>
+                            <li>Hard refresh the page (Ctrl+Shift+R)</li>
+                            <li>Check browser console for errors (F12)</li>
+                            <li>Verify VITE_API_URL in .env file</li>
+                        </ol>
+                    </div>
+                `;
+                
+            } catch (error) {
+                results.innerHTML += `
+                    <div class="status error">
+                        <h3>❌ Error</h3>
+                        <p>${error.message}</p>
+                        <p>Make sure the backend server is running on port 3001</p>
+                        <pre>npm run dev</pre>
+                    </div>
+                `;
+            }
+        }
+        
+        // Auto-run on load
+        window.onload = testAPI;
+    </script>
+</body>
+</html>

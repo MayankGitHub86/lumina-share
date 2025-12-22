@@ -34,6 +34,7 @@ model User {
   comments      Comment[]
   badges        UserBadge[]
   savedQuestions SavedQuestion[]
+  collections   Collection[]
 }
 
 model Question {
@@ -55,6 +56,7 @@ model Question {
   votes         Vote[]
   comments      Comment[]
   savedBy       SavedQuestion[]
+  collections   CollectionQuestion[]
 }
 
 model Answer {
@@ -160,4 +162,30 @@ model SavedQuestion {
   question      Question       @relation(fields: [questionId], references: [id])
   
   @@unique([userId, questionId])
+}
+
+model Collection {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  description   String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  userId        String         @db.ObjectId
+  user          User           @relation(fields: [userId], references: [id])
+  
+  questions     CollectionQuestion[]
+}
+
+model CollectionQuestion {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  addedAt       DateTime       @default(now())
+  
+  collectionId  String         @db.ObjectId
+  collection    Collection     @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  
+  questionId    String         @db.ObjectId
+  question      Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  
+  @@unique([collectionId, questionId])
 }

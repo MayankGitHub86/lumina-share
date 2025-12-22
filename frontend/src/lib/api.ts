@@ -26,21 +26,37 @@ class ApiService {
   ): Promise<T> {
     const { requiresAuth = false, ...fetchOptions } = options;
 
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...fetchOptions,
-      headers: {
-        ...this.getHeaders(requiresAuth),
-        ...fetchOptions.headers,
-      },
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...fetchOptions,
+        headers: {
+          ...this.getHeaders(requiresAuth),
+          ...fetchOptions.headers,
+        },
+      });
 
-    const data = await response.json();
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('Non-JSON response:', text.substring(0, 200));
+        throw new Error('Server returned non-JSON response. Backend might not be running correctly.');
+      }
 
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'An error occurred');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error?.message || data.message || 'An error occurred');
+      }
+
+      return data;
+    } catch (error: any) {
+      // If it's a network error
+      if (error.message.includes('fetch')) {
+        throw new Error('Cannot connect to server. Please check if backend is running on port 3001.');
+      }
+      throw error;
     }
-
-    return data;
   }
 
   // Auth
@@ -231,6 +247,56 @@ class ApiService {
     });
   }
 
+  async getUserVote(questionId?: string, answerId?: string) {
+    const params = new URLSearchParams();
+    if (questionId) params.append('questionId', questionId);
+    if (answerId) params.append('answerId', answerId);
+    return this.request(`/votes/user?${params.toString()}`, {
+      requiresAuth: true,
+    });
+  }
+
+  async getVoteStats(questionId?: string, answerId?: string) {
+    const params = new URLSearchParams();
+    if (questionId) params.append('questionId', questionId);
+    if (answerId) params.append('answerId', answerId);
+    return this.request(`/votes/stats?${params.toString()}`);
+  }
+
+  // Search
+  async advancedSearch(params: {
+    q?: string;
+    tags?: string;
+    author?: string;
+    status?: 'solved' | 'unsolved' | 'all';
+    sort?: 'recent' | 'votes' | 'views' | 'answers';
+    minVotes?: number;
+    maxVotes?: number;
+    minAnswers?: number;
+    maxAnswers?: number;
+    dateFrom?: string;
+    dateTo?: string;
+    page?: number;
+    limit?: number;
+  }) {
+    const cleanParams: Record<string, string> = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        cleanParams[key] = String(value);
+      }
+    });
+    const query = new URLSearchParams(cleanParams).toString();
+    return this.request(`/search?${query}`);
+  }
+
+  async getSearchSuggestions(query: string) {
+    return this.request(`/search/suggestions?q=${encodeURIComponent(query)}`);
+  }
+
+  async getPopularSearches() {
+    return this.request('/search/popular');
+  }
+
   // Comments
   async createComment(data: {
     content: string;
@@ -254,6 +320,57 @@ class ApiService {
 
   async deleteComment(id: string) {
     return this.request(`/comments/${id}`, {
+      method: 'DELETE',
+      requiresAuth: true,
+    });
+  }
+
+  // Collections
+  async getUserCollections() {
+    return this.request('/collections', {
+      requiresAuth: true,
+    });
+  }
+
+  async createCollection(data: { name: string; description?: string }) {
+    return this.request('/collections', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      requiresAuth: true,
+    });
+  }
+
+  async updateCollection(id: string, data: { name?: string; description?: string }) {
+    return this.request(`/collections/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+      requiresAuth: true,
+    });
+  }
+
+  async deleteCollection(id: string) {
+    return this.request(`/collections/${id}`, {
+      method: 'DELETE',
+      requiresAuth: true,
+    });
+  }
+
+  async getCollectionQuestions(id: string) {
+    return this.request(`/collections/${id}/questions`, {
+      requiresAuth: true,
+    });
+  }
+
+  async addQuestionToCollection(collectionId: string, questionId: string) {
+    return this.request(`/collections/${collectionId}/questions`, {
+      method: 'POST',
+      body: JSON.stringify({ questionId }),
+      requiresAuth: true,
+    });
+  }
+
+  async removeQuestionFromCollection(collectionId: string, questionId: string) {
+    return this.request(`/collections/${collectionId}/questions/${questionId}`, {
       method: 'DELETE',
       requiresAuth: true,
     });
