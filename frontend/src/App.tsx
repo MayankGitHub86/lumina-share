@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Contact from "./pages/Contact";
+import GoogleCallback from "./pages/GoogleCallback";
 import { AuthProvider, useAuth } from "./context/auth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import useNotifications from "./hooks/use-notifications";
@@ -50,6 +51,7 @@ const AppContent = () => {
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/auth/google/callback" element={<GoogleCallback />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

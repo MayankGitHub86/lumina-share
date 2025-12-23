@@ -28,6 +28,7 @@ const navLinks = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isAskDialogOpen, setIsAskDialogOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
@@ -46,6 +47,15 @@ export function Navbar() {
   const handleLogout = () => {
     logout();
     navigate("/");
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/explore?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery("");
+      setIsSearchExpanded(false);
+    }
   };
 
   return (
@@ -100,7 +110,7 @@ export function Navbar() {
             {/* Search & Actions */}
             <div className="flex items-center gap-3">
               {/* Search */}
-              <div className={cn(
+              <form onSubmit={handleSearch} className={cn(
                 "relative transition-all duration-300",
                 isSearchExpanded ? "w-64" : "w-10"
               )}>
@@ -109,6 +119,8 @@ export function Navbar() {
                   <Input
                     type="search"
                     placeholder="Search problems..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className={cn(
                       "pl-10 pr-4 h-10 transition-all duration-300",
                       isSearchExpanded 
@@ -116,18 +128,19 @@ export function Navbar() {
                         : "w-10 opacity-0 cursor-pointer"
                     )}
                     onFocus={() => setIsSearchExpanded(true)}
-                    onBlur={() => setIsSearchExpanded(false)}
+                    onBlur={() => setTimeout(() => setIsSearchExpanded(false), 200)}
                   />
                 </div>
                 {!isSearchExpanded && (
                   <button
+                    type="button"
                     onClick={() => setIsSearchExpanded(true)}
                     className="absolute inset-0 flex items-center justify-center rounded-xl bg-muted/50 hover:bg-muted transition-colors"
                   >
                     <Search className="w-4 h-4 text-muted-foreground" />
                   </button>
                 )}
-              </div>
+              </form>
 
               {/* Ask Question Button - Desktop Only */}
               {user && (

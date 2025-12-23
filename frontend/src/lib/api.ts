@@ -84,8 +84,19 @@ class ApiService {
     page?: number;
     limit?: number;
     search?: string;
+    sort?: string;
+    minPoints?: number;
   }) {
-    const query = new URLSearchParams(params as any).toString();
+    // Filter out undefined values to prevent "undefined" string in URL
+    const cleanParams: Record<string, string> = {};
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          cleanParams[key] = String(value);
+        }
+      });
+    }
+    const query = new URLSearchParams(cleanParams).toString();
     return this.request(`/users?${query}`);
   }
 

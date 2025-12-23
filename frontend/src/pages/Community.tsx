@@ -40,12 +40,15 @@ const Community = () => {
 
   // Fetch users from backend
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["users", { page, search: searchQuery, sort: activeTab === "top" ? "points" : "recent" }],
+    queryKey: ["users", { page, search: searchQuery, tab: activeTab }],
     queryFn: async () => {
       const res: any = await api.getAllUsers({
         page,
         limit: 12,
         search: searchQuery || undefined,
+        sort: activeTab === "top" ? "points" : "recent",
+        // Only filter by minPoints when searching in Top Contributors tab
+        minPoints: (activeTab === "top" && searchQuery) ? 1000 : undefined,
       });
       return res.data;
     },
@@ -156,7 +159,10 @@ const Community = () => {
                       return (
                         <motion.button
                           key={tab.id}
-                          onClick={() => setActiveTab(tab.id)}
+                          onClick={() => {
+                            setActiveTab(tab.id);
+                            setPage(1); // Reset to first page when changing tabs
+                          }}
                           className={cn(
                             "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
                             activeTab === tab.id

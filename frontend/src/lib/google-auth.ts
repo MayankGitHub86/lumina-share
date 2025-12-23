@@ -36,6 +36,7 @@ export const initializeGoogleButton = (
   (window as any).google.accounts.id.initialize({
     client_id: clientId,
     callback: onSuccess,
+    use_fedcm_for_prompt: false, // Disable FedCM to avoid CORS issues
   });
 
   (window as any).google.accounts.id.renderButton(
@@ -45,10 +46,5 @@ export const initializeGoogleButton = (
       size: "large",
       width: "100%",
     }
-  );
-
-  (window as any).google.accounts.id.renderButton(
-    document.getElementById(containerId),
-    { theme: "outline", size: "large", width: "100%" }
   );
 };

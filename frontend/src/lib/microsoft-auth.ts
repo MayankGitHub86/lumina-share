@@ -29,7 +29,7 @@ export const getMicrosoftAuthConfig = () => {
     auth: {
       clientId,
       authority: `https://login.microsoftonline.com/${tenantId}`,
-      redirectUri: `${window.location.origin}/auth/microsoft/callback`,
+      redirectUri: window.location.origin, // Changed to just the origin
     },
     cache: {
       cacheLocation: "localStorage",

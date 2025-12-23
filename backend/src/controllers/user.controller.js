@@ -7,17 +7,25 @@ const getAllUsers = async (
   next
 ) => {
   try {
-    const { page = 1, limit = 20, search } = req.query;
+    const { page = 1, limit = 20, search, sort = 'points', minPoints } = req.query;
     const skip = (Number(page) - 1) * Number(limit);
 
-    const where = search
-      ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { username: { contains: search, mode: 'insensitive' } }
-          ]
-        }
-      : {};
+    const where = {
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { username: { contains: search, mode: 'insensitive' } }
+        ]
+      }),
+      ...(minPoints && {
+        points: { gte: Number(minPoints) }
+      })
+    };
+
+    // Determine sort order
+    const orderBy = sort === 'recent' 
+      ? { createdAt: 'desc' }
+      : { points: 'desc' };
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -40,7 +48,7 @@ const getAllUsers = async (
             }
           }
         },
-        orderBy: { points: 'desc' }
+        orderBy
       }),
       prisma.user.count({ where })
     ]);

@@ -41,13 +41,14 @@ type QuestionItem = {
 const Explore = () => {
   const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
+  const searchParam = searchParams.get('search');
   
   const [activeFilter, setActiveFilter] = useState("trending");
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isAskDialogOpen, setIsAskDialogOpen] = useState(false);
   const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParam || "");
   const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
 
   // Set category from URL parameter
@@ -56,6 +57,13 @@ const Explore = () => {
       setActiveCategory(categoryParam);
     }
   }, [categoryParam]);
+
+  // Set search query from URL parameter
+  useEffect(() => {
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+  }, [searchParam]);
 
   // Fetch tags/categories from backend
   const { data: tagsData, isError: tagsError } = useQuery({
@@ -75,7 +83,7 @@ const Explore = () => {
   }, [activeFilter]);
 
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
-    queryKey: ["questions", { category: activeCategory, sort, ...searchFilters }],
+    queryKey: ["questions", { category: activeCategory, filter: activeFilter, sort, searchQuery, ...searchFilters }],
     queryFn: async () => {
       // Use advanced search if filters are applied
       if (Object.keys(searchFilters).length > 0 || searchQuery) {

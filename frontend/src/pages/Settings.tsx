@@ -82,7 +82,7 @@ const Settings = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/settings/profile`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001/api"}/settings/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -100,6 +100,9 @@ const Settings = () => {
       // Update local storage
       localStorage.setItem("user", JSON.stringify(data.data.user));
       toast.success("Profile updated successfully");
+      
+      // Reload page to update user context
+      window.location.reload();
     } catch (error: any) {
       toast.error(error.message || "Failed to update profile");
     } finally {
@@ -112,7 +115,7 @@ const Settings = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/settings/email`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001/api"}/settings/email`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -144,10 +147,15 @@ const Settings = () => {
       return;
     }
 
+    if (passwordData.newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/settings/password`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001/api"}/settings/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -184,7 +192,7 @@ const Settings = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/settings/account`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001/api"}/settings/account`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -212,7 +220,7 @@ const Settings = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/settings/notifications`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || "http://localhost:3001/api"}/settings/notifications`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -5,9 +5,9 @@ import { useAuth } from "@/context/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { Github, Mail } from "lucide-react";
 import GoogleIcon from "@/components/icons/GoogleIcon";
-import { handleGoogleAuth, handleMicrosoftAuth, handleGitHubAuth } from "@/lib/oauth";
-import { loadGoogleScript, initializeGoogleButton } from "@/lib/google-auth";
 import { initializeMicrosoftAuth } from "@/lib/microsoft-auth";
+import { initiateGoogleOAuth } from "@/lib/google-oauth2";
+import { initiateGitHubOAuth } from "@/lib/github-oauth";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { FadeIn, SlideIn } from "@/components/AnimatedPage";
@@ -76,9 +76,78 @@ const Login = () => {
 
   // Load OAuth scripts on mount
   useEffect(() => {
-    loadGoogleScript().catch(() => {
-      console.error("Failed to load Google OAuth");
-    });
+    // Check if this is an OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const state = urlParams.get('state');
+    
+    console.log('OAuth check:', { code: !!code, state: !!state });
+    
+    if (code && state) {
+      setLoading(true); // Show loading immediately
+      
+      // Determine which OAuth provider based on stored state
+      const googleState = sessionStorage.getItem('google_oauth_state');
+      const githubState = sessionStorage.getItem('github_oauth_state');
+      
+      console.log('Stored states:', { googleState, githubState, receivedState: state });
+      
+      if (state === googleState) {
+        console.log('Processing Google callback...');
+        // Handle Google OAuth callback
+        const processGoogleCallback = async () => {
+          try {
+            const { handleGoogleCallback } = await import('@/lib/google-oauth2');
+            const data = await handleGoogleCallback();
+            
+            localStorage.setItem('token', data.data.token);
+            localStorage.setItem('user', JSON.stringify(data.data.user));
+            toast.success('Google login successful!');
+            
+            // Small delay to ensure toast is visible
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 500);
+          } catch (err: any) {
+            console.error('Google callback error:', err);
+            setError(err.message);
+            toast.error(err.message);
+            window.history.replaceState({}, document.title, '/login');
+            setLoading(false);
+          }
+        };
+        processGoogleCallback();
+      } else if (state === githubState) {
+        console.log('Processing GitHub callback...');
+        // Handle GitHub OAuth callback
+        const processGitHubCallback = async () => {
+          try {
+            const { handleGitHubCallback } = await import('@/lib/github-oauth');
+            const data = await handleGitHubCallback();
+            
+            console.log('GitHub auth successful:', data);
+            localStorage.setItem('token', data.data.token);
+            localStorage.setItem('user', JSON.stringify(data.data.user));
+            toast.success('GitHub login successful!');
+            
+            // Small delay to ensure toast is visible
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 500);
+          } catch (err: any) {
+            console.error('GitHub callback error:', err);
+            setError(err.message);
+            toast.error(err.message);
+            window.history.replaceState({}, document.title, '/login');
+            setLoading(false);
+          }
+        };
+        processGitHubCallback();
+      } else {
+        console.log('State mismatch - no matching OAuth provider');
+        setLoading(false);
+      }
+    }
 
     initializeMicrosoftAuth().catch(() => {
       console.error("Failed to initialize Microsoft OAuth");
@@ -103,56 +172,12 @@ const Login = () => {
     }
   };
 
-  const handleGoogleClick = async () => {
-    setLoading(true);
+  const handleGoogleClick = () => {
     try {
-      await loadGoogleScript();
-      if (!(window as any).google) {
-        throw new Error("Google OAuth not loaded");
-      }
-      
-      // Trigger Google Sign-In popup
-      (window as any).google.accounts.id.prompt();
+      initiateGoogleOAuth();
     } catch (err: any) {
       setError(err?.message || "Google authentication failed");
       toast.error(err?.message || "Google authentication failed");
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSuccess = async (credentialResponse: any) => {
-    setLoading(true);
-    try {
-      const idToken = credentialResponse.credential;
-      if (!idToken) {
-        throw new Error("No token received from Google");
-      }
-
-      const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/auth/oauth/google`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ idToken }),
-        }
-      );
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error?.message || "Google authentication failed");
-      }
-
-      // Store both token and user data
-      localStorage.setItem("token", data.data.token);
-      localStorage.setItem("user", JSON.stringify(data.data.user));
-      toast.success("Google login successful!");
-      
-      // Reload to update auth context
-      window.location.href = "/dashboard";
-    } catch (err: any) {
-      setError(err.message);
-      toast.error(err.message);
-      setLoading(false);
     }
   };
 
@@ -166,10 +191,11 @@ const Login = () => {
 
       const response = await msalInstance.loginPopup({
         scopes: ["user.read"],
+        prompt: "select_account", // Force account selection every time
       });
 
       const backendResponse = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:3001"}/api/auth/oauth/microsoft`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:3001/api"}/auth/oauth/microsoft`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -197,10 +223,12 @@ const Login = () => {
   };
 
   const handleGitHubClick = () => {
-    handleGitHubAuth((error) => {
-      setError(error);
-      toast.error(error);
-    });
+    try {
+      initiateGitHubOAuth();
+    } catch (err: any) {
+      setError(err?.message || "GitHub authentication failed");
+      toast.error(err?.message || "GitHub authentication failed");
+    }
   };
 
   return (
